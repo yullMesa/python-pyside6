@@ -257,7 +257,8 @@ QLabel {
 
 /* QLineEdit (ID del vehículo y el otro campo) */
 #pageIngenieria #Ingeline, 
-#pageIngenieria #Ingeline_2 { /* Asumo que tienes dos QLineEdit, si solo es uno, elimina la segunda línea */
+#pageIngenieria #Ingeline_2,
+#pageIngenieria #Ingebuton_2 { /* Asumo que tienes dos QLineEdit, si solo es uno, elimina la segunda línea */
     font-size: 10pt;
     color: white;
     background-color: #3c404c;
