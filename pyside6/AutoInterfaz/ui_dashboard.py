@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGroupBox,
-    QHBoxLayout, QLabel, QLayout, QLineEdit,
-    QMainWindow, QMenuBar, QPushButton, QSizePolicy,
-    QStackedWidget, QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QHBoxLayout,
+    QLabel, QLayout, QLineEdit, QMainWindow,
+    QMenuBar, QPushButton, QSizePolicy, QStackedWidget,
+    QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -400,7 +400,7 @@ class Ui_MainWindow(object):
         self.Ingebuton_5.setStyleSheet(u"color: rgb(255, 255, 255);")
         self.Ingebuton_2 = QLineEdit(self.pageIngenieria)
         self.Ingebuton_2.setObjectName(u"Ingebuton_2")
-        self.Ingebuton_2.setGeometry(QRect(60, 120, 113, 31))
+        self.Ingebuton_2.setGeometry(QRect(60, 120, 121, 31))
         font5 = QFont()
         font5.setPointSize(11)
         font5.setBold(True)
@@ -413,18 +413,20 @@ class Ui_MainWindow(object):
         self.Ingebox.addItem("")
         self.Ingebox.addItem("")
         self.Ingebox.setObjectName(u"Ingebox")
-        self.Ingebox.setGeometry(QRect(200, 120, 141, 24))
+        self.Ingebox.setGeometry(QRect(220, 120, 141, 24))
         self.Ingebuton_6 = QPushButton(self.pageIngenieria)
         self.Ingebuton_6.setObjectName(u"Ingebuton_6")
         self.Ingebuton_6.setGeometry(QRect(400, 113, 101, 41))
-        self.groupBox = QGroupBox(self.pageIngenieria)
-        self.groupBox.setObjectName(u"groupBox")
-        self.groupBox.setGeometry(QRect(-1, 159, 731, 551))
         self.Ingeline = QLineEdit(self.pageIngenieria)
         self.Ingeline.setObjectName(u"Ingeline")
         self.Ingeline.setGeometry(QRect(560, 120, 113, 31))
         self.Ingeline.setFont(font5)
         self.Ingeline.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.frame = QFrame(self.pageIngenieria)
+        self.frame.setObjectName(u"frame")
+        self.frame.setGeometry(QRect(-1, 179, 741, 521))
+        self.frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame.setFrameShadow(QFrame.Shadow.Raised)
         self.stackedWidget.addWidget(self.pageIngenieria)
         self.page_6 = QWidget()
         self.page_6.setObjectName(u"page_6")
@@ -452,7 +454,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(3)
         self.stackedWidget_2.setCurrentIndex(0)
 
 
@@ -503,7 +505,6 @@ class Ui_MainWindow(object):
         self.Ingebox.setItemText(4, "")
 
         self.Ingebuton_6.setText(QCoreApplication.translate("MainWindow", u"Grafica", None))
-        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"GroupBox", None))
         self.Ingeline.setPlaceholderText(QCoreApplication.translate("MainWindow", u"En reparacion", None))
         self.btnConfirmarCRUD.setText(QCoreApplication.translate("MainWindow", u"Confirmar", None))
     # retranslateUi

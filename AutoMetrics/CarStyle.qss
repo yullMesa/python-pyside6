@@ -241,49 +241,46 @@ QLabel {
 
 
 
-/* Selector de contexto: Solo afecta a QPushButton DENTRO del QWidget #pageIngenieria */
-#pageIngenieria QComboBox {
-    /* 1. ANULACIONES DE FONDO Y BORDE */
-    background-color: transparent; /* Fondo transparente */
-    border: none;                 /* Sin borde */
-    
-    /* 2. ANULACIONES DE TAMAÑO Y ESPACIADO */
-    padding: 2px 5px;             /* Relleno MÍNIMO para reducir el tamaño del botón */
-    font-size: 9pt;               /* Tamaño de fuente más pequeño para botones pequeños */
-    
-    /* 3. ESTILO DE TEXTO */
-    color: white;                 /* Asegura que el texto se vea en blanco */
-    text-align: center;
-}
+/* ---------------------------------------------------- */
+/* ⭐ ANULACIÓN ESPECÍFICA DE WIDGETS DE INGENIERÍA ⭐ */
+/* ---------------------------------------------------- */
 
-/* Selector de máxima especificidad para el ComboBox de Ingeniería */
+/* QComboBox (El que tiene la letra gigante) */
 #pageIngenieria #Ingebox {
-    /* Normalizar el tamaño de la fuente */
-    font-size: 10pt; 
-    
-    /* Asegurar que el padding sea normal */
-    padding: 2px;
-    
-    /* Otros estilos de color/fondo que necesites anular */
+    font-size: 10pt; /* Sobrescribe la regla general de 56px */
     color: white; 
-    background-color: #3c4c4c; /* Si quieres darle un color de fondo oscuro específico */
+    background-color: #3c404c;
+    border: 1px solid #6a6adc;
+    border-radius: 5px;
+    padding: 2px 5px;
 }
 
-/* Selector de máxima especificidad para todos los botones pequeños de Ingeniería */
-#pageIngenieria #Ingebuton,
-#pageIngenieria #Ingebuton_3,
-#pageIngenieria #Ingebuton_4,
-#pageIngenieria #Ingebuton_5,
-#pageIngenieria #Ingebuton_6  /* Incluye todos los botones pequeños */
-{
-    /* Anulación del estilo de botón general */
-    background-color: transparent; 
-    border: none;
-    
-    /* Normalizar el tamaño y espaciado */
-    font-size: 10pt; 
-    padding: 2px 5px; 
-    
-    /* Estilo de texto */
-    color: white;                 
+/* QLineEdit (ID del vehículo y el otro campo) */
+#pageIngenieria #Ingeline, 
+#pageIngenieria #Ingeline_2 { /* Asumo que tienes dos QLineEdit, si solo es uno, elimina la segunda línea */
+    font-size: 10pt;
+    color: white;
+    background-color: #3c404c;
+    border: 1px solid #6a6adc;
+    border-radius: 5px;
+    padding: 2px 5px;
+}
+
+/* TODOS los botones de Ingeniería (Añadir, Editar, Datos, Grafica, etc.) */
+/* Usamos el contenedor #pageIngenieria para evitar que se filtren los estilos del menú lateral */
+#pageIngenieria QPushButton { 
+    /* Estilo de Botón de Formulario (No de Navegación) */
+    background-color: #3c404c;
+    color: white;
+    border: 1px solid #6a6adc;
+    border-radius: 5px;
+    padding: 5px 10px; /* Relleno */
+    font-size: 10pt;
+    text-align: center; /* No alineado a la izquierda como los del menú */
+}
+
+/* Estilo al pasar el ratón (Hover) para los botones de Ingeniería */
+#pageIngenieria QPushButton:hover {
+    background-color: #505562; /* Un tono un poco más claro al pasar el ratón */
+    border-color: white;
 }
