@@ -138,6 +138,7 @@ class DatabaseManager:
             connection.close()
             
             return resultados
+        
         except Exception as e:
             self.ultimo_error = str(e) # Guardar el error para depuración
             print(f"Error al leer la base de datos: {e}")
