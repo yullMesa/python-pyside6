@@ -1,0 +1,74 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Current Python File",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "-u",
+                "${file}"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run AutoMetrics - Inicio (Dialogo)",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "-u",
+                "${workspaceFolder}/AutoMetrics/Conexion.py"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Generar UI PY (pyside6-uic)",
+            "type": "process",
+            "command": "pyside6-uic",
+            "args": [
+                "${workspaceFolder}/pyside6/AutoInterfaz/Main.ui",
+                "-o",
+                "${workspaceFolder}/pyside6/AutoInterfaz/ui_main.py"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Generar UI PY (Dashboard)",
+            "type": "process",
+            "command": "pyside6-uic",
+            "args": [
+                "${workspaceFolder}/pyside6/AutoInterfaz/dashboard.ui",
+                "-o",
+                "${workspaceFolder}/pyside6/AutoInterfaz/ui_dashboard.py"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

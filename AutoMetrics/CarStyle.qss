@@ -1,0 +1,289 @@
+QDialog#DialogoInicio { /* #DialogoInicio es el objectName de tu QDialog */
+    background-image: url("pyside6/AutoInterfaz/carro.png"); /* Ruta a tu imagen */
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    background-color: #1f1f1f;/* Color de fondo si la imagen no cubre todo o es transparente */
+    background-attachment: fixed; /* Opcional: a veces ayuda con el tamaño */
+    background-color: transparent; /* ⭐️ AGREGAR O VERIFICAR */
+
+}
+
+/* Puedes estilizar los botones y etiquetas para que contrasten */
+QDialog#DialogoInicio QPushButton {
+    background-color: rgba(106, 92, 205, 0.7); /* Morado semi-transparente */
+    color: black;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 20px;
+    font-size: 63px; /* ⭐️ TAMAÑO GRANDE SOLO AQUÍ ⭐️ */
+    background-color: transparent;
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* 2. El estilo de hover también debe ser específico si quieres mantener el efecto */
+QDialog#DialogoInicio QPushButton:hover {
+    background-color: rgba(125, 105, 255, 0.9);
+    
+}
+
+QLabel {
+    color: black; /* Texto blanco para contrastar con el fondo oscuro */
+    background-color: transparent;
+    border-radius: 15px;
+    
+}
+
+/* --- Estilo para el QLabel de Bienvenida --- */
+QLabel#labelBienvenido { /* Asegúrate de darle este objectName en Qt Designer */
+    color: black; /* Texto blanco para el fondo oscuro */
+    font-size: 120px; /* Haz el texto grande */
+    font-weight: bold; /* Texto en negrita */
+    background-color: transparent; /* Fondo transparente para que se vea la imagen */
+    padding-bottom: 20px; /* Un poco de espacio debajo del texto */
+    text-align: center;
+    
+
+}
+
+
+/* --- Estilo para el QComboBox (Seleccione Su Rol) --- */
+QComboBox {
+    background-color: #3c404c; /* Fondo oscuro del ComboBox */
+    border: 1px solid #6a6adc; /* Borde sutil */
+    border-radius: 15px; /* Bordes redondeados */
+    padding: 8px 15px; /* Espaciado interno */
+    color: black; /* Color del texto dentro del ComboBox */
+    font-size: 56px; /* Tamaño de fuente */
+    background-color: transparent; /* ⭐️ PRUEBA ESTO */
+    
+}
+
+QComboBox::drop-down { /* La parte de la flecha */
+    background-position: top right;
+    width: 25px; /* Ancho del área de la flecha */
+    border-left-width: 1px;
+    border-left-color: #6a6adc; /* Borde de la flecha */
+    border-left-style: solid;
+    border-top-right-radius: 8px; /* Redondear esquina superior derecha */
+    border-bottom-right-radius: 8px; /* Redondear esquina inferior derecha */
+}
+
+
+QComboBox QAbstractItemView { /* Estilo de la lista desplegable */
+    border: 1px solid #6a6adc;
+    border-radius: 15px;
+    background-color: #3c404c;
+    color: black;
+}
+
+
+QWidget#mainContainer, QFrame#mainContainer {
+    background-color: transparent; /* <- ¡Esto debe ser transparente! */
+}
+
+
+QFrame#fondoImagenFrame {
+    background-image: url("pyside6/AutoInterfaz/carro.png"); 
+    background-position: center;
+    background-repeat: no-repeat;
+    /* No uses background-size: cover; aquí */
+
+    /* ⭐️ ¡CRÍTICO! Para que la imagen se vea y cubra, puedes: */
+    /* Opción A: Asegurar que tu PNG tiene el tamaño del diálogo (ej: 800x600) */
+    /* Opción B: Si el frame tiene un layout, usa image: url(...) y escala con un QLabel */
+}
+
+
+QWidget {
+    background-color: transparent; /* Aplicar transparencia a todos los widgets */
+}
+
+/* Solo aplica este estilo a los PushButtons dentro de tu barra lateral */
+QFrame#frameSidebar QPushButton {
+    color: white;
+    background-color: transparent; /* Fondo transparente para ver el color de fondo del QFrame */
+    border: none;
+    padding: 18px; /* Hazlos altos */
+    font-size: 18px;
+    text-align: left; /* Alinea el texto a la izquierda, como en tu prototipo */
+
+    /* ⭐️ CONTROL DE TAMAÑO ⭐️ */
+    padding: 15px 5px; /* Relleno vertical de 15px, horizontal de 5px */
+    font-size: 16px; /* Aumenta el texto para que el botón parezca más grande */
+    
+    /* Alineación a la izquierda como en el prototipo */
+    text-align: left;
+}
+
+QFrame#frameSidebar QPushButton:hover {
+    background-color: #5a5d6c; /* Un color de fondo al pasar el ratón */
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil al pasar el ratón */
+}
+
+
+/* Asumiendo que tu QFrame lateral tiene el objectName 'frameSidebar' */
+QFrame#frameSidebar {
+    background-color: #2e303f; /* Un color oscuro visible (como en tu prototipo) */
+    border: none;
+}
+
+
+/* 1. Estilo para la Ventana Principal (QMainWindow) */
+QMainWindow {
+    /* Establece un color de fondo base oscuro, pero asegúrate de que el centralwidget no lo tape */
+    background-color: #1e1e1e; 
+}
+
+QWidget#centralwidget {
+    background-color: transparent;
+}
+
+/* 2. Estilo para el QFrame de la Barra Lateral */
+QFrame#frameSidebar { 
+    /* El color de tu barra lateral (como el morado oscuro en tu prototipo) */
+    background-color: #2b2b3b; 
+    border-right: 1px solid #444444; 
+    min-width: 180px; 
+    border: none;
+}
+
+/* 3. Estilo para los Botones dentro de la Barra Lateral */
+QFrame#frameSidebar QPushButton {
+   color: white; /* ⭐️ ¡Asegura que las letras sean blancas! ⭐️ */
+    background-color: transparent; /* El fondo es el del frameSidebar */
+    border: none;
+    padding: 15px 5px; 
+    font-size: 14px; /* Tamaño de fuente normal */
+    text-align: left;
+}
+
+/* 4. Estilo de Botón Seleccionado (el color morado) */
+QFrame#frameSidebar QPushButton:checked,
+QFrame#frameSidebar QPushButton:hover {
+    background-color: #5500aa;
+    border-radius: 0px; /* Morado fuerte para el hover y el estado activo */
+}
+
+QFrame#frameSidebar QPushButton:checked {
+    background-color: #5500aa; /* Morado Vibrante de AutoMetrics */
+    border-right: 5px solid #ff00c8; /* Línea de color rosa/fucsia a la derecha para destacar */
+    font-weight: bold;
+}
+
+/* CarStyle.qss (Aprox. Línea 124) */
+QFrame#frameSidebar {
+    background-color: #2e2e3f; /* Un color oscuro visible (como en tu prototipo) */
+    border: none;
+}
+
+QStackedWidget, QWidget#page_Administrativo { 
+    /* Asegúrate de que tu página se llame page_Administrativo si estás usando QStackedWidget */
+    background-color: #21212c; /* Gris oscuro para el área de contenido */
+    color: white; /* Texto principal debe ser blanco */
+}
+
+/* Etiquetas (Labels) en el área central */
+QLabel {
+    color: white; /* Asegura que todas las etiquetas sean blancas */
+    font-size: 18px; /* Tamaño de fuente legible */
+}
+
+
+QLineEdit, QComboBox, QDateEdit {
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo claro semi-transparente */
+    color: white; 
+    border: 1px solid #555555;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+/* Área de Texto Grande (Notas) */
+QTextEdit {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid #555555;
+    border-radius: 5px;
+}
+
+
+QPushButton#btnSaveEmployee { 
+    /* Usa el objectName del botón de Guardar/Confirmar del formulario */
+    background-color: #5500aa; /* Morado vibrante */
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+}
+
+QPushButton#btnSaveEmployee:hover {
+    background-color: #7b00ff; /* Un poco más claro al pasar el ratón */
+}
+
+
+/* 1. 🌟 ESTILO PARA EL TÍTULO GRANDE (Gestión de Empleados) 🌟 */
+QLabel#lblTituloEmpleados {
+    color: white; 
+    font-size: 30px; /* Tamaño grande para el título */
+    font-weight: bold;
+    padding-left: 32px; /* Añade un poco de espacio si es necesario */
+}
+
+/* 2. 📝 ESTILO GENÉRICO PARA ETIQUETAS DE CAMPO */
+/* Esto se aplicará a todas las demás etiquetas (Nombre Completo, Email, etc.) */
+QLabel {
+    color: white; 
+    font-size: 16px; /* Tamaño normal y legible para los campos */
+    font-weight: normal;
+    background-color: transparent;
+}
+
+
+
+/* Selector de contexto: Solo afecta a QPushButton DENTRO del QWidget #pageIngenieria */
+#pageIngenieria QComboBox {
+    /* 1. ANULACIONES DE FONDO Y BORDE */
+    background-color: transparent; /* Fondo transparente */
+    border: none;                 /* Sin borde */
+    
+    /* 2. ANULACIONES DE TAMAÑO Y ESPACIADO */
+    padding: 2px 5px;             /* Relleno MÍNIMO para reducir el tamaño del botón */
+    font-size: 9pt;               /* Tamaño de fuente más pequeño para botones pequeños */
+    
+    /* 3. ESTILO DE TEXTO */
+    color: white;                 /* Asegura que el texto se vea en blanco */
+    text-align: center;
+}
+
+/* Selector de máxima especificidad para el ComboBox de Ingeniería */
+#pageIngenieria #Ingebox {
+    /* Normalizar el tamaño de la fuente */
+    font-size: 10pt; 
+    
+    /* Asegurar que el padding sea normal */
+    padding: 2px;
+    
+    /* Otros estilos de color/fondo que necesites anular */
+    color: white; 
+    background-color: #3c4c4c; /* Si quieres darle un color de fondo oscuro específico */
+}
+
+/* Selector de máxima especificidad para todos los botones pequeños de Ingeniería */
+#pageIngenieria #Ingebuton,
+#pageIngenieria #Ingebuton_3,
+#pageIngenieria #Ingebuton_4,
+#pageIngenieria #Ingebuton_5,
+#pageIngenieria #Ingebuton_6  /* Incluye todos los botones pequeños */
+{
+    /* Anulación del estilo de botón general */
+    background-color: transparent; 
+    border: none;
+    
+    /* Normalizar el tamaño y espaciado */
+    font-size: 10pt; 
+    padding: 2px 5px; 
+    
+    /* Estilo de texto */
+    color: white;                 
+}
