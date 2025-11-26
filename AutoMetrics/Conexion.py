@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ... otras importaciones ...
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QWidgetItem
+    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QTableWidgetItem,QLabel
 )
 
 # 1. Importa la clase del diseño generado por Qt Designer para el Diálogo de Inicio
@@ -560,7 +560,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
     def mostrar_grafica_reparacion(self):
         """Genera y muestra una gráfica de datos de reparación para el vehículo seleccionado."""
-        vin = self.Ingeline.text().strip()
+        vin = self.Ingebuton_2.text().strip()
         
         if not vin:
             QMessageBox.warning(self, "Error", "Ingrese un ID de vehículo para ver la gráfica.")
@@ -573,11 +573,31 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         if not datos_reparacion:
             QMessageBox.information(self, "Error", "No se encontraron datos de reparación para este vehículo.")
             return
+        
+        frame_contenedor = self.frame
 
         # 2. Crear la gráfica (reutilizando tu método create_simple_chart)
         # (Ajusta los datos y etiquetas según la estructura que devuelva tu DB)
         datos = [d[1] for d in datos_reparacion] # Ejemplo: solo la columna de valor
         labels = [d[0] for d in datos_reparacion] # Ejemplo: solo la columna de etiqueta
+        
+        if frame_contenedor.layout():
+            layout = frame_contenedor.layout()
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+        else:
+            layout = QVBoxLayout(frame_contenedor)
+            frame_contenedor.setLayout(layout)
+
+        # Crear el widget de la gráfica
+        canvas = self.create_simple_chart(
+            "Historial de Reparación de " + vin,
+            datos,
+            labels
+        )
         
         canvas = self.create_simple_chart(
             f"Historial de Reparación de {vin}",
