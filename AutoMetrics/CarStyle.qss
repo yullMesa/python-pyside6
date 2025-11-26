@@ -285,3 +285,28 @@ QLabel {
     background-color: #505562; /* Un tono un poco más claro al pasar el ratón */
     border-color: white;
 }
+
+
+/* Estilo general para la tabla (QTableWidget) */
+QTableWidget {
+    background-color: #2e303f;  /* Fondo del frame principal (oscuro) */
+    color: white;               /* Color del texto */
+    border: 1px solid #6a6adc;  /* Borde sutil */
+    lighting-color: #3c404c;    /* Color de las líneas de la cuadrícula */
+    font-size: 14px;
+}
+
+/* Estilo para las cabeceras horizontales y verticales (donde dice 'VIN', 'Marca', etc.) */
+QHeaderView::section {
+    background-color: #3c404c; /* Color más oscuro que el fondo */
+    color: white;              /* Texto blanco */
+    padding: 5px;
+    border: 1px solid #2e303f;
+    font-weight: bold;
+}
+
+/* Estilo para las filas seleccionadas */
+QTableWidget::item:selected {
+    background-color: #6a6adc; /* Color morado para selección */
+    color: white;
+}

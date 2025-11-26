@@ -132,21 +132,39 @@ class DatabaseManager:
         return "No encontrado" # Si no hay resultados
     
 
-    def actualizar_estado_vehiculo(self, vin, nuevo_estado, tiempo_reparacion): 
-        """
-        2. Función para ESCRIBIR (UPDATE): Toma el VIN, el estado y el tiempo.
-        """
-        # Esta es la función que se llama en 'manejar_confirmar_ingenieria'
-        # Nota: Asumo que tienes una columna 'tiempo_reparacion' en la tabla.
-        query = "UPDATE Vehiculos SET estado = %s, tiempo_reparacion = %s WHERE vin_serial_no = %s"
+    def actualizar_estado_vehiculo(self, vin, nuevo_estado, tiempo_reparacion_horas):
+        # 1. ACTUALIZAR la tabla Vehiculos
+        query_update = "UPDATE Vehiculos SET estado = %s WHERE vin_serial_no = %s"
+        data_update = (nuevo_estado, vin)
         
-        # Asume que tienes un método self.execute_write_query para UPDATE/INSERT
-        # Debes implementar este método si no existe.
-        # return self.execute_write_query(query, (nuevo_estado, tiempo_reparacion, vin))
+        # 2. INSERTAR el registro en Registros_Ingenieria
+        # Necesitarías obtener el estado_anterior primero, pero por simplicidad, insertaremos directamente el nuevo estado.
+        query_insert = """
+        INSERT INTO Registros_Ingenieria 
+        (vin_serial_no, estado_nuevo, tiempo_reparacion_horas) 
+        VALUES (%s, %s, %s)
+        """
+        data_insert = (vin, nuevo_estado, tiempo_reparacion_horas)
         
-        # Por ahora, simplemente para que el código compile y pase el 'if' en Conexion.py:
-        print(f"Actualizando vehículo {vin} a {nuevo_estado} con {tiempo_reparacion} horas.")
-        return True # Simula una actualización exitosa
+        try:
+            connection = self.get_connection()
+            cursor = connection.cursor()
+            
+            # Ejecutar ambas consultas como una transacción
+            cursor.execute(query_update, data_update)
+            cursor.execute(query_insert, data_insert)
+            
+            connection.commit() # Confirmar ambas operaciones
+            cursor.close()
+            connection.close()
+            return True
+        except Exception as e:
+            # En caso de error, deshacer
+            connection.rollback()
+            print(f"Error al actualizar y registrar estado del vehículo: {e}")
+            return False
+        
+        
     
     def execute_read_query(self, query, data=None): # <<-- CORRECCIÓN AQUÍ
         """Ejecuta una consulta SELECT y retorna los resultados como una lista de tuplas."""
@@ -175,3 +193,12 @@ class DatabaseManager:
         
         # Llama a la función de lectura de datos
         return self.execute_read_query(query)
+    
+    def obtener_lista_vehiculos(self):
+        """Obtiene el VIN, marca y modelo de TODOS los vehículos."""
+        query = "SELECT vin_serial_no, marca, modelo FROM Vehiculos"
+        # Reutiliza tu función de lectura que ya debería aceptar solo el query si no hay 'data'
+        resultados = self.execute_read_query(query) 
+        return resultados
+    
+    

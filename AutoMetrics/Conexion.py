@@ -241,6 +241,14 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.btnConfirmarCRUD.setVisible(True)
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_ingenieria)
         
+        # EN Conexion.py (Dentro de def navegar_a, línea 240 aprox.)
+
+        elif indice_de_pagina == 4: # 4: Ingeniería
+            # ... (código existente)
+            
+            # 💥 LLAMADA CLAVE: Cargar la lista de vehículos al entrar a la vista
+            self.cargar_listado_vehiculos() # <<-- ¡AÑADE ESTA LÍNEA!
+        
         else:
             # En el caso de "Usuarios" (índice 7) o "Visual", oculta y no conecta.
             self.btnConfirmarCRUD.setVisible(False)
@@ -479,7 +487,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             # self.limpiar_campos_vehiculo() # Si tienes un método de limpieza, úsalo aquí
         else:
             QMessageBox.critical(self, "Error", "No se pudo registrar el vehículo. Verifique la base de datos o si el VIN ya existe.")
-
+        
         # En Conexion.py (dentro de la clase MainDashboard)
     def limpiar_campos_vehiculo(self):
         """Limpia todos los campos de entrada de la sección de vehículos."""
@@ -607,6 +615,71 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         else:
             # El carro está bien ("Operativo", "Terminado", etc.)
             pass
+
+
+    # EN Conexion.py (Dentro de class MainDashboard)
+
+    def cargar_listado_vehiculos(self):
+        """Carga los vehículos en el QFrame de la vista Ingeniería."""
+        # 1. Obtener los datos de la base de datos
+        vehiculos = self.db.obtener_lista_vehiculos()
+        
+        # 2. Referencia al frame (asume que frame es el widget contenedor)
+        # self.frame es la referencia al frame que tienes en la vista.
+        frame_contenedor = self.frame # Ajusta si el nombre del objeto es diferente
+        
+        # 3. Limpiar el contenido previo del frame
+        if frame_contenedor.layout():
+            # Si ya hay un layout, lo limpiamos para evitar duplicados
+            layout = frame_contenedor.layout()
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+            
+        # Crear un nuevo layout si no existe o si se limpió
+        if not frame_contenedor.layout():
+            layout = QVBoxLayout(frame_contenedor)
+            frame_contenedor.setLayout(layout)
+
+        # 4. Crear la tabla (QTableWidget)
+        if vehiculos:
+            table_widget = QTableWidget()
+            table_widget.setColumnCount(3)
+            table_widget.setHorizontalHeaderLabels(['VIN', 'Marca', 'Modelo'])
+            table_widget.setRowCount(len(vehiculos))
+            
+            # Llenar la tabla
+            for fila, vehiculo in enumerate(vehiculos):
+                vin, marca, modelo = vehiculo
+                table_widget.setItem(fila, 0, QTableWidgetItem(vin))
+                table_widget.setItem(fila, 1, QTableWidgetItem(marca))
+                table_widget.setItem(fila, 2, QTableWidgetItem(modelo))
+                
+            # 5. Conectar la tabla al evento de click (para cargar datos en los QLineEdit/ComboBox)
+            table_widget.cellClicked.connect(self.seleccionar_vehiculo_en_tabla)
+            
+            layout.addWidget(table_widget)
+        else:
+            # Mostrar un mensaje si no hay vehículos
+            label = QLabel("No hay vehículos registrados para Ingeniería.")
+            label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(label)
+
+    def seleccionar_vehiculo_en_tabla(self, fila, columna):
+        """Obtiene el VIN de la fila seleccionada y lo pone en Ingeline."""
+        # Asegúrate de que el QTableWidget esté en la posición 0 del layout del frame
+        table_widget = self.frame.layout().itemAt(0).widget()
+        
+        # El VIN está en la columna 0
+        vin_item = table_widget.item(fila, 0)
+        if vin_item:
+            vin = vin_item.text()
+            # Coloca el VIN seleccionado en el campo de texto principal
+            self.Ingeline.setText(vin)
+            # Opcional: Dispara la función de cargar datos para rellenar los campos Ingenieria
+            # self.cargar_datos_vehiculo()
 
     def setup_navigation(self):
         """Inicializa el grupo de botones y conecta la señal de navegación."""
