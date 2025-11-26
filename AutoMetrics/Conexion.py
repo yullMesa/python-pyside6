@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ... otras importaciones ...
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout
+    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QWidgetItem
 )
 
 # 1. Importa la clase del diseño generado por Qt Designer para el Diálogo de Inicio
