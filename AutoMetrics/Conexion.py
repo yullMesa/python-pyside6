@@ -49,9 +49,9 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # ... (setup y otras inicializaciones)
         # <-- LLAMA LA FUNCIÓN PARA OBTENER EL OBJETO DE CONEXIÓN# Guarda la conexión para usarla en los métodos CRUD
         self.rol = rol_seleccionado
-        # Reemplaza la línea 52:
-        # En Conexion.py, Línea 55
-        # En Conexion.py, Línea 55
+        self.Ingebuton_4.clicked.connect(self.mostrar_grafica_reparacion)
+        # EN Conexion.py (Dentro de __init__ o en un setup_connections())
+        self.Ingeline.editingFinished.connect(self.cargar_datos_vehiculo)
         self.db = DatabaseManager(host='127.0.0.1', user='root',
                                 password='Yull123', # O la clave que definiste para el nuevo usuario
                                 database='autometrics')
@@ -497,17 +497,19 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
     def manejar_editar_estado_vehiculo(self):
         # 1. Recuperar datos
-        vin_serial_no = self.txtIDVehiculo.text().strip() # Asumo que este es el LineEdit
+        vin_serial_no = self.Ingebuton_2.text().strip() # Asumo que este es el LineEdit
         
         # Asumo que tienes un QComboBox para el estado, por ejemplo: self.cmbEstadoVehiculo
-        nuevo_estado = self.cmbEstadoVehiculo.currentText() 
+        nuevo_estado = self.Ingeline.currentText() 
+        accion_seleccionada=self.Ingebox.currentText()
+        
 
         if not vin_serial_no or not nuevo_estado:
             QMessageBox.warning(self, "Validación", "El ID del vehículo y el nuevo estado son obligatorios.")
             return
 
         # 2. Llamar al método de actualización en db_manager
-        if self.db.update_estado_vehiculo(vin_serial_no, nuevo_estado):
+        if self.db.obtener_estado_vehiculo(vin_serial_no, nuevo_estado,accion_seleccionada):
             QMessageBox.information(self, "Éxito", f"Estado del vehículo {vin_serial_no} actualizado a '{nuevo_estado}'.")
         else:
             QMessageBox.critical(self, "Error", "No se pudo actualizar el estado. Verifique el ID.")
@@ -520,10 +522,96 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         #
         # Lógica real: Recuperar datos de los QLineEdit/QComboBox de Ingeniería
         # ...
-        # Llamar a self.db.add_vehiculo_ingenieria(datos) o similar.
-        # ...
         pass
+
+        """
+        Función CRUD para la vista de Ingeniería:
+        1. Recupera el ID del vehículo (Ingeline/Ingeline_2).
+        2. Recupera el tipo de acción/estado (Ingebox).
+        3. Recupera el tiempo de reparación (Ingeline/Ingeline_2 - si aplica).
+        4. Llama a un método en DatabaseManager para actualizar la tabla 'Vehiculos' o 'Reparaciones'.
+        """
+                # 1. Recuperar datos (usando los objectName de tu diseño)
+        vin = self.Ingeline.text().strip()  # Asumo Ingeline es el campo del ID
+        accion_seleccionada = self.Ingebox.currentText() # Asumo Ingebox es el QComboBox
+        tiempo_reparacion = self.Ingebuton_2.text().strip() # Asumo Ingebuton_2 es el campo de tiempo
         
+        if self.db.actualizar_estado_vehiculo(vin, accion_seleccionada, tiempo_reparacion): # <<-- ¡BIEN!
+            QMessageBox.information(self, "Éxito", f"Estado del vehículo {vin} actualizado a {accion_seleccionada}.")
+        
+        # 2. Validación básica
+        
+        if not vin:
+            QMessageBox.warning(self, "Error", "El VIN del vehículo es obligatorio.")
+            return
+
+        # Lógica de actualización usando el VIN
+        if self.db.obtener_estado_vehiculo(vin,tiempo_reparacion,accion_seleccionada):
+            QMessageBox.information(self, "Éxito", f"Estado del vehículo {vin} actualizado a {accion_seleccionada}")
+        else:
+            QMessageBox.critical(self, "Error", "No se pudo actualizar el estado del vehículo.")
+        
+
+        # EN Conexion.py (Dentro de class MainDashboard)
+
+    def mostrar_grafica_reparacion(self):
+        """Genera y muestra una gráfica de datos de reparación para el vehículo seleccionado."""
+        vin = self.Ingeline.text().strip()
+        
+        if not vin:
+            QMessageBox.warning(self, "Error", "Ingrese un ID de vehículo para ver la gráfica.")
+            return
+            
+        # 1. Obtener datos de reparación
+        # (Necesitarás crear un método en db_manager.py, ej: db.obtener_datos_reparacion(vehiculo_id))
+        datos_reparacion = self.db.obtener_datos_reparacion(vin)
+        
+        if not datos_reparacion:
+            QMessageBox.information(self, "Error", "No se encontraron datos de reparación para este vehículo.")
+            return
+
+        # 2. Crear la gráfica (reutilizando tu método create_simple_chart)
+        # (Ajusta los datos y etiquetas según la estructura que devuelva tu DB)
+        datos = [d[1] for d in datos_reparacion] # Ejemplo: solo la columna de valor
+        labels = [d[0] for d in datos_reparacion] # Ejemplo: solo la columna de etiqueta
+        
+        canvas = self.create_simple_chart(
+            f"Historial de Reparación de {vin}",
+            datos,
+            labels
+        )
+
+        # 3. Mostrar la gráfica en un diálogo o en una sección de la página
+        # (Aquí puedes usar un QDialog o un QStackedWidget secundario)
+        
+        # Ejemplo con un diálogo (más simple):
+        dialogo = QDialog(self)
+        dialogo.setWindowTitle("Gráfica de Reparación")
+        layout = QVBoxLayout(dialogo)
+        layout.addWidget(canvas)
+        dialogo.exec()
+
+
+    def cargar_datos_vehiculo(self):
+        """Consulta el estado del vehículo y actualiza los campos de Ingeniería."""
+        vin = self.Ingeline.text().strip()
+        
+        if not vin:
+            self.Ingebuton_2.clear() # Limpia el campo de tiempo
+            return
+
+        # 1. Obtener el estado del vehículo
+        # (Necesitarás un método en db_manager.py, ej: db.obtener_estado_vehiculo(vehiculo_id))
+        estado = self.db.obtener_estado_vehiculo(vin) 
+        
+        if estado == "En reparación":
+            # Puedes obtener el tiempo si ya existe o dejarlo vacío para que lo ingrese
+            self.Ingebuton_2.setText("") 
+            self.Ingebox.setCurrentText("Reparado") # Sugiere el siguiente estado
+        else:
+            # El carro está bien ("Operativo", "Terminado", etc.)
+            self.Ingebuton_2.setText("N/A")
+            QMessageBox.information(self, "Estado", f"Vehículo {vin} está {estado}.")
 
     def setup_navigation(self):
         """Inicializa el grupo de botones y conecta la señal de navegación."""

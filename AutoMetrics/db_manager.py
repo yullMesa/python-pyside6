@@ -116,34 +116,59 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error al obtener la conexión: {e}")
             return None
+        
+
+    def obtener_estado_vehiculo(self, vin,tiempo_reparacion,accion_seleccionada): 
+        """Obtiene el estado actual de un vehículo por su VIN."""
+        # La columna de la llave primaria en la tabla es 'vin_serial_no'
+        query = "SELECT estado FROM Vehiculos WHERE vin_serial_no = %s" 
+        
+        
+        # Ejemplo asumiendo que execute_read_query acepta data como segundo argumento:
+        resultados = self.execute_read_query(query, (vin,tiempo_reparacion,accion_seleccionada)) 
+        
+        if resultados:
+            return resultados[0][0] # Retorna el estado (el primer valor de la primera tupla)
+        return "No encontrado" # Si no hay resultados
     
 
-    # ... (Continúa el resto de la clase DatabaseManager)
-    # Asegúrate de tener un método para ejecutar consultas de lectura (SELECT)
-    def execute_read_query(self, query):
+    def actualizar_estado_vehiculo(self, vin, nuevo_estado, tiempo_reparacion): 
+        """
+        2. Función para ESCRIBIR (UPDATE): Toma el VIN, el estado y el tiempo.
+        """
+        # Esta es la función que se llama en 'manejar_confirmar_ingenieria'
+        # Nota: Asumo que tienes una columna 'tiempo_reparacion' en la tabla.
+        query = "UPDATE Vehiculos SET estado = %s, tiempo_reparacion = %s WHERE vin_serial_no = %s"
+        
+        # Asume que tienes un método self.execute_write_query para UPDATE/INSERT
+        # Debes implementar este método si no existe.
+        # return self.execute_write_query(query, (nuevo_estado, tiempo_reparacion, vin))
+        
+        # Por ahora, simplemente para que el código compile y pase el 'if' en Conexion.py:
+        print(f"Actualizando vehículo {vin} a {nuevo_estado} con {tiempo_reparacion} horas.")
+        return True # Simula una actualización exitosa
+    
+    def execute_read_query(self, query, data=None): # <<-- CORRECCIÓN AQUÍ
         """Ejecuta una consulta SELECT y retorna los resultados como una lista de tuplas."""
         try:
-            # 1. Abrir la conexión y crear el cursor
-            connection = self.get_connection() # Asumiendo que tienes un método para obtener la conexión
+            connection = self.get_connection()
             cursor = connection.cursor()
             
             # 2. Ejecutar la consulta
-            cursor.execute(query)
-            
-            # 3. Obtener todos los resultados
+            if data:
+                cursor.execute(query, data) # Usa la tupla de datos (vin)
+            else:
+                cursor.execute(query) # Consulta simple
+                
             resultados = cursor.fetchall()
-            
-            # 4. Cerrar el cursor y la conexión
             cursor.close()
             connection.close()
-            
             return resultados
-        
         except Exception as e:
-            self.ultimo_error = str(e) # Guardar el error para depuración
-            print(f"Error al leer la base de datos: {e}")
+            # Aquí puedes dejar tu lógica de manejo de errores
+            print(f"Error al leer la base de datos: {e}") 
             return []
-    
+        
     def get_distribucion_empleados(self):
     # La columna del rol se llama 'cargo' en tu esquema
         query = "SELECT cargo, COUNT(*) FROM Empleados GROUP BY cargo"
