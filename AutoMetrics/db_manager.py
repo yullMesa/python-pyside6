@@ -121,7 +121,7 @@ class DatabaseManager:
     def obtener_estado_vehiculo(self, vin): 
         """Obtiene el estado actual de un vehículo por su VIN."""
         # La columna de la llave primaria en la tabla es 'vin_serial_no'
-        query = "SELECT estado FROM Vehiculos WHERE vin_serial_no = %s" 
+        query = "SELECT estado FROM Vehiculos WHERE vin_serial_no = %s" # <-- ¡Debe tener solo un %s!
         
         
         # Ejemplo asumiendo que execute_read_query acepta data como segundo argumento:

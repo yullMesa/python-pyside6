@@ -606,8 +606,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.Ingebox.setCurrentText("Reparado") # Sugiere el siguiente estado
         else:
             # El carro está bien ("Operativo", "Terminado", etc.)
-            self.Ingebuton_2.setText("N/A")
-            QMessageBox.information(self, "Estado", f"Vehículo {vin} está {estado}.")
+            pass
 
     def setup_navigation(self):
         """Inicializa el grupo de botones y conecta la señal de navegación."""
