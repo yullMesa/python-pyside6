@@ -118,14 +118,14 @@ class DatabaseManager:
             return None
         
 
-    def obtener_estado_vehiculo(self, vin,tiempo_reparacion,accion_seleccionada): 
+    def obtener_estado_vehiculo(self, vin): 
         """Obtiene el estado actual de un vehículo por su VIN."""
         # La columna de la llave primaria en la tabla es 'vin_serial_no'
         query = "SELECT estado FROM Vehiculos WHERE vin_serial_no = %s" 
         
         
         # Ejemplo asumiendo que execute_read_query acepta data como segundo argumento:
-        resultados = self.execute_read_query(query, (vin,tiempo_reparacion,accion_seleccionada)) 
+        resultados = self.execute_read_query(query, (vin,)) 
         
         if resultados:
             return resultados[0][0] # Retorna el estado (el primer valor de la primera tupla)
@@ -156,7 +156,7 @@ class DatabaseManager:
             
             # 2. Ejecutar la consulta
             if data:
-                cursor.execute(query, data) # Usa la tupla de datos (vin)
+                cursor.execute(query, data) # Ahora acepta la tupla (vin,)
             else:
                 cursor.execute(query) # Consulta simple
                 

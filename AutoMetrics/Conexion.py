@@ -500,7 +500,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         vin_serial_no = self.Ingebuton_2.text().strip() # Asumo que este es el LineEdit
         
         # Asumo que tienes un QComboBox para el estado, por ejemplo: self.cmbEstadoVehiculo
-        nuevo_estado = self.Ingeline.currentText() 
+        nuevo_estado = self.Ingeline.text().strip()
         accion_seleccionada=self.Ingebox.currentText()
         
 
@@ -531,14 +531,10 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         3. Recupera el tiempo de reparación (Ingeline/Ingeline_2 - si aplica).
         4. Llama a un método en DatabaseManager para actualizar la tabla 'Vehiculos' o 'Reparaciones'.
         """
-                # 1. Recuperar datos (usando los objectName de tu diseño)
-        vin = self.Ingeline.text().strip()  # Asumo Ingeline es el campo del ID
-        accion_seleccionada = self.Ingebox.currentText() # Asumo Ingebox es el QComboBox
-        tiempo_reparacion = self.Ingebuton_2.text().strip() # Asumo Ingebuton_2 es el campo de tiempo
-        
-        if self.db.actualizar_estado_vehiculo(vin, accion_seleccionada, tiempo_reparacion): # <<-- ¡BIEN!
-            QMessageBox.information(self, "Éxito", f"Estado del vehículo {vin} actualizado a {accion_seleccionada}.")
-        
+        vin = self.Ingebuton_2.text().strip()              # ID del vehículo
+        accion_seleccionada = self.Ingebox.currentText()  # Qué desea?
+        tiempo_reparacion = self.Ingeline.text().strip()
+
         # 2. Validación básica
         
         if not vin:
@@ -546,8 +542,8 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             return
 
         # Lógica de actualización usando el VIN
-        if self.db.obtener_estado_vehiculo(vin,tiempo_reparacion,accion_seleccionada):
-            QMessageBox.information(self, "Éxito", f"Estado del vehículo {vin} actualizado a {accion_seleccionada}")
+        if self.db.actualizar_estado_vehiculo(vin, accion_seleccionada, tiempo_reparacion): # <<-- ¡CORREGIDO!
+            print('funciono')
         else:
             QMessageBox.critical(self, "Error", "No se pudo actualizar el estado del vehículo.")
         
