@@ -526,6 +526,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         """
         Gestiona la lógica del botón Confirmar para la vista de Ingeniería.
         """
+
         QMessageBox.information(self, "Mensaje", "Lógica de Confirmar Ingeniería ejecutada.")
         #
         # Lógica real: Recuperar datos de los QLineEdit/QComboBox de Ingeniería
@@ -555,8 +556,6 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         else:
             QMessageBox.critical(self, "Error", "No se pudo actualizar el estado del vehículo.")
         
-
-        # EN Conexion.py (Dentro de class MainDashboard)
 
     def mostrar_grafica_reparacion(self):
         """Genera y muestra una gráfica de datos de reparación para el vehículo seleccionado."""

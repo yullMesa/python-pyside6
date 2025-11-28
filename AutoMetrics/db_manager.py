@@ -132,13 +132,14 @@ class DatabaseManager:
         return "No encontrado" # Si no hay resultados
     
 
+    # EN db_manager.py (Modificar la función de actualización de estado)
+
     def actualizar_estado_vehiculo(self, vin, nuevo_estado, tiempo_reparacion_horas):
         # 1. ACTUALIZAR la tabla Vehiculos
         query_update = "UPDATE Vehiculos SET estado = %s WHERE vin_serial_no = %s"
         data_update = (nuevo_estado, vin)
         
-        # 2. INSERTAR el registro en Registros_Ingenieria
-        # Necesitarías obtener el estado_anterior primero, pero por simplicidad, insertaremos directamente el nuevo estado.
+        # 2. INSERTAR el registro en Registros_Ingenieria (la tabla de historial)
         query_insert = """
         INSERT INTO Registros_Ingenieria 
         (vin_serial_no, estado_nuevo, tiempo_reparacion_horas) 
@@ -150,17 +151,18 @@ class DatabaseManager:
             connection = self.get_connection()
             cursor = connection.cursor()
             
-            # Ejecutar ambas consultas como una transacción
+            # Ejecutar ambas consultas
             cursor.execute(query_update, data_update)
             cursor.execute(query_insert, data_insert)
             
-            connection.commit() # Confirmar ambas operaciones
+            connection.commit() # ¡CONFIRMAR AMBAS OPERACIONES!
             cursor.close()
             connection.close()
             return True
         except Exception as e:
-            # En caso de error, deshacer
-            connection.rollback()
+            # En caso de error, deshacer todo y reportar
+            if 'connection' in locals():
+                connection.rollback()
             print(f"Error al actualizar y registrar estado del vehículo: {e}")
             return False
         
@@ -201,7 +203,19 @@ class DatabaseManager:
         resultados = self.execute_read_query(query) 
         return resultados
     
-    # EN db_manager.py (Añadir esta nueva función)
+    # EN db_manager.py (Añadir esta función)
+
+    def obtener_datos_reparacion(self, vin):
+        """Obtiene el historial de tiempos de reparación de un vehículo."""
+        query = """
+        SELECT estado_nuevo, tiempo_reparacion_horas
+        FROM Registros_Ingenieria 
+        WHERE vin_serial_no = %s
+        ORDER BY fecha_registro ASC
+        """
+        
+        resultados = self.execute_read_query(query, (vin,)) 
+        return resultados
 
     def obtener_datos_reparacion(self, vin):
         """
