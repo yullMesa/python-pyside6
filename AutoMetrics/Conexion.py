@@ -50,7 +50,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # ... (setup y otras inicializaciones)
         # <-- LLAMA LA FUNCIÓN PARA OBTENER EL OBJETO DE CONEXIÓN# Guarda la conexión para usarla en los métodos CRUD
         self.rol = rol_seleccionado
-        self.Ingebuton_4.clicked.connect(self.mostrar_grafica_reparacion)
+        self.Ingebuton_6.clicked.connect(self.mostrar_grafica_reparacion)
         # EN Conexion.py (Dentro de __init__ o en un setup_connections())
         self.Ingeline.editingFinished.connect(self.cargar_datos_vehiculo)
         self.db = DatabaseManager(host='127.0.0.1', user='root',
@@ -248,14 +248,16 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_vehiculo)
             self.btnConfirmarCRUD.setVisible(True)
 
-        elif indice_de_pagina == 4: # Índice de la página Visual
-            self.btnConfirmarCRUD.setVisible(True)
-            self.load_visual_analytics(self.rol_seleccionado)
-
         elif indice_de_pagina == 3: # Ingeniería
             self.btnConfirmarCRUD.setVisible(True)
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_ingenieria)
         
+
+        elif indice_de_pagina == 4: # Índice de la página Visual
+            self.btnConfirmarCRUD.setVisible(False)
+            self.load_visual_analytics(self.rol_seleccionado)
+
+
 
         elif indice_de_pagina == 5: 
             
@@ -572,7 +574,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
     def mostrar_grafica_reparacion(self):
         """Genera y muestra una gráfica de datos de reparación para el vehículo seleccionado."""
-        vin = self.Ingebuton_2.text().strip()
+        vin = self.Ingebuton_6.text().strip()
         
         if not vin:
             QMessageBox.warning(self, "Error", "Ingrese un ID de vehículo para ver la gráfica.")
@@ -593,40 +595,32 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         datos = [d[1] for d in datos_reparacion] # Ejemplo: solo la columna de valor
         labels = [d[0] for d in datos_reparacion] # Ejemplo: solo la columna de etiqueta
         
-        if frame_contenedor.layout():
-            layout = frame_contenedor.layout()
+        # 1. Crear el widget de la gráfica
+        chart_canvas = self.create_simple_chart(
+            f"Historial de Reparación de {vin}",
+            datos,
+            labels
+        )
+        
+        # 2. 💥 MANEJO DEL CONTENEDOR (EL self.frame)
+        frame_contenedor = self.frame # El QFrame que tienes en la vista de Ingeniería
+        
+        # 3. Limpiar contenido anterior (Tabla o Gráfico previo)
+        layout = frame_contenedor.layout()
+        if layout is None:
+            # Si no tiene layout, lo creamos
+            layout = QVBoxLayout(frame_contenedor)
+            frame_contenedor.setLayout(layout)
+        else:
+            # Si ya tiene layout, limpiamos los widgets que pueda haber (la tabla de listado, por ejemplo)
             while layout.count():
                 item = layout.takeAt(0)
                 widget = item.widget()
                 if widget is not None:
                     widget.deleteLater()
-        else:
-            layout = QVBoxLayout(frame_contenedor)
-            frame_contenedor.setLayout(layout)
-
-        # Crear el widget de la gráfica
-        canvas = self.create_simple_chart(
-            "Historial de Reparación de " + vin,
-            datos,
-            labels
-        )
         
-        canvas = self.create_simple_chart(
-            f"Historial de Reparación de {vin}",
-            datos,
-            labels
-        )
-
-        # 3. Mostrar la gráfica en un diálogo o en una sección de la página
-        # (Aquí puedes usar un QDialog o un QStackedWidget secundario)
-        
-        # Ejemplo con un diálogo (más simple):
-        dialogo = QDialog(self)
-        dialogo.setWindowTitle("Gráfica de Reparación")
-        layout = QVBoxLayout(dialogo)
-        layout.addWidget(canvas)
-        dialogo.exec()
-
+        # 4. Añadir el nuevo gráfico al frame limpio
+        layout.addWidget(chart_canvas)
 
     def cargar_datos_vehiculo(self):
         """Consulta el estado del vehículo y actualiza los campos de Ingeniería."""
