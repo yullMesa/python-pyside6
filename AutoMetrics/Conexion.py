@@ -16,6 +16,7 @@ from db_manager import DatabaseManager
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 
 
@@ -127,8 +128,18 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             title = "Logística: Estado Actual de la Flota (Activo vs. Mantenimiento)"
             chart_canvas = self.create_simple_chart(title, [80, 20], ['Activos', 'Mantenimiento'])
             layout.addWidget(chart_canvas)
+
+        # Agrega tu gráfico de Ingeniería aquí, por ejemplo:
+        elif rol == "Ingenieria":
+            # Nota: Aquí deberías llamar a una función DB que obtenga datos generales
+            # o usar datos fijos como ejemplo.
+            title = "Ingeniería: Tiempos de Reparación Promedio"
+            chart_canvas = self.create_simple_chart(title, [5, 3, 1], ['Reparación', 'Mantenimiento', 'Reciclaje'])
             
-        # En load_visual_analytics(self, rol)
+        else:
+            # Manejo de roles sin gráfica específica
+            return
+            
         frame_contenedor = self.frameGraficos 
         layout = frame_contenedor.layout() 
         # ...
@@ -237,17 +248,19 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_vehiculo)
             self.btnConfirmarCRUD.setVisible(True)
 
+        elif indice_de_pagina == 4: # Índice de la página Visual
+            self.btnConfirmarCRUD.setVisible(True)
+            self.load_visual_analytics(self.rol_seleccionado)
+
         elif indice_de_pagina == 3: # Ingeniería
             self.btnConfirmarCRUD.setVisible(True)
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_ingenieria)
         
-        # EN Conexion.py (Dentro de def navegar_a, línea 240 aprox.)
 
-        elif indice_de_pagina == 4: # 4: Ingeniería
-            # ... (código existente)
+        elif indice_de_pagina == 5: 
             
             # 💥 LLAMADA CLAVE: Cargar la lista de vehículos al entrar a la vista
-            self.cargar_listado_vehiculos() # <<-- ¡AÑADE ESTA LÍNEA!
+            self.cargar_listado_vehiculos() 
         
         else:
             # En el caso de "Usuarios" (índice 7) o "Visual", oculta y no conecta.
@@ -699,6 +712,31 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.Ingeline.setText(vin)
             # Opcional: Dispara la función de cargar datos para rellenar los campos Ingenieria
             # self.cargar_datos_vehiculo()
+
+    # EN Conexion.py (Añadir a la clase MainDashboard)
+
+    def create_simple_chart(self, title, data, labels):
+        """Crea una gráfica de barras simple y devuelve el widget Canvas."""
+        
+        fig, ax = plt.subplots(figsize=(5, 4))
+        
+        # Crea el gráfico de barras (o el tipo que prefieras)
+        ax.bar(labels, data, color='#6a6adc') 
+        
+        # Configuración de los ejes y título
+        ax.set_title(title, color='white')
+        ax.set_xlabel("Estado de Reparación", color='white')
+        ax.set_ylabel("Tiempo (Horas)", color='white')
+        
+        # Estilos para coincidir con tu tema oscuro
+        ax.set_facecolor('#2e303f')
+        fig.patch.set_facecolor('#2e303f')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        
+        # Crear el Canvas de Qt (el widget)
+        canvas = FigureCanvas(fig)
+        return canvas
 
     def setup_navigation(self):
         """Inicializa el grupo de botones y conecta la señal de navegación."""

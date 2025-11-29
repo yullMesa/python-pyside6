@@ -203,7 +203,6 @@ class DatabaseManager:
         resultados = self.execute_read_query(query) 
         return resultados
     
-    # EN db_manager.py (Añadir esta función)
 
     def obtener_datos_reparacion(self, vin):
         """Obtiene el historial de tiempos de reparación de un vehículo."""
@@ -217,22 +216,5 @@ class DatabaseManager:
         resultados = self.execute_read_query(query, (vin,)) 
         return resultados
 
-    def obtener_datos_reparacion(self, vin):
-        """
-        Obtiene los estados y tiempos de reparación de un vehículo específico.
-        Esto es para graficar el historial.
-        """
-        # Cambia Registros_Ingenieria por el nombre real de tu tabla de historial si es diferente.
-        query = """
-        SELECT estado_nuevo, tiempo_reparacion_horas, fecha_registro 
-        FROM Registros_Ingenieria 
-        WHERE vin_serial_no = %s
-        ORDER BY fecha_registro
-        """
-        
-        # ⚠️ Importante: Asegúrate de que execute_read_query maneje la tupla (vin,)
-        resultados = self.execute_read_query(query, (vin,)) 
-        
-        return resultados
     
     
