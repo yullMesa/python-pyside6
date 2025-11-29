@@ -205,16 +205,18 @@ class DatabaseManager:
     
 
     def obtener_datos_reparacion(self, vin):
-        """Obtiene el historial de tiempos de reparación de un vehículo."""
+        # EN db_manager.py (Dentro de def obtener_datos_reparacion(self, vin):)
+
         query = """
-        SELECT estado_nuevo, tiempo_reparacion_horas
-        FROM Registros_Ingenieria 
+        SELECT 
+            estado_nuevo, 
+            SUM(tiempo_reparacion_horas) 
+        FROM Registros_Ingenieria
         WHERE vin_serial_no = %s
-        ORDER BY fecha_registro ASC
-        """
-        
-        resultados = self.execute_read_query(query, (vin,)) 
-        return resultados
+        GROUP BY estado_nuevo
+        ORDER BY SUM(tiempo_reparacion_horas) DESC
+    """
+        return self.execute_read_query(query, (vin,))
 
     
     

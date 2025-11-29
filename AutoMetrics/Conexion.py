@@ -47,19 +47,16 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.configurar_dashboard_por_rol(self.rol_seleccionado)
         #
 
-        # ... (setup y otras inicializaciones)
-        # <-- LLAMA LA FUNCIÓN PARA OBTENER EL OBJETO DE CONEXIÓN# Guarda la conexión para usarla en los métodos CRUD
         self.rol = rol_seleccionado
         self.Ingebuton_6.clicked.connect(self.mostrar_grafica_reparacion)
-        # EN Conexion.py (Dentro de __init__ o en un setup_connections())
         self.Ingeline.editingFinished.connect(self.cargar_datos_vehiculo)
         self.db = DatabaseManager(host='127.0.0.1', user='root',
                                 password='Yull123', # O la clave que definiste para el nuevo usuario
                                 database='autometrics')
         # ...
  
-        # En Conexion.py, dentro de tu clase MainDashboard
-        self.setup_navigation() # ⭐️ LLAMA A LA NUEVA FUNCIÓN AQUÍ ⭐️
+        
+        self.setup_navigation() 
 
         # Conectar el botón de la vista de Empleados a la función de manejo
         self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_empleado,self.manejar_confirmar_vehiculo)
@@ -287,9 +284,9 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.button_group.setExclusive(True) # Solo uno puede estar chequeado a la vez
         
         # 2. Añadir todos los botones de la barra lateral al grupo
-        self.button_group.addButton(self.btnAdministrativo)
+        self.button_group.addButton(self.btnAdministrador)
         self.button_group.addButton(self.btnLogistico)
-        self.button_group.addButton(self.btnVehiculos)
+        self.button_group.addButton(self.btnVehicles)
         # ... añade todos los demás botones (Ingenieria, Marketing, Usuarios)
         
         # 3. Conectar la señal a la navegación
@@ -297,7 +294,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.button_group.buttonClicked.connect(self.handle_navigation)
 
         # 4. Establecer el primer botón como seleccionado por defecto
-        self.btnAdministrativo.setChecked(True) # O el botón que quieras que sea la vista inicial
+        self.btnAdministrador.setChecked(True) # O el botón que quieras que sea la vista inicial
         # ...
         
     def handle_navigation(self, button):
@@ -574,7 +571,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
     def mostrar_grafica_reparacion(self):
         """Genera y muestra una gráfica de datos de reparación para el vehículo seleccionado."""
-        vin = self.Ingebuton_6.text().strip()
+        vin = self.Ingebuton_2.text().strip()
         
         if not vin:
             QMessageBox.warning(self, "Error", "Ingrese un ID de vehículo para ver la gráfica.")
@@ -589,6 +586,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             return
         
         frame_contenedor = self.frame
+        layout = frame_contenedor.layout()
 
         # 2. Crear la gráfica (reutilizando tu método create_simple_chart)
         # (Ajusta los datos y etiquetas según la estructura que devuelva tu DB)
@@ -602,11 +600,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             labels
         )
         
-        # 2. 💥 MANEJO DEL CONTENEDOR (EL self.frame)
-        frame_contenedor = self.frame # El QFrame que tienes en la vista de Ingeniería
-        
-        # 3. Limpiar contenido anterior (Tabla o Gráfico previo)
-        layout = frame_contenedor.layout()
+
         if layout is None:
             # Si no tiene layout, lo creamos
             layout = QVBoxLayout(frame_contenedor)
@@ -621,6 +615,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         
         # 4. Añadir el nuevo gráfico al frame limpio
         layout.addWidget(chart_canvas)
+        frame_contenedor.repaint()
 
     def cargar_datos_vehiculo(self):
         """Consulta el estado del vehículo y actualiza los campos de Ingeniería."""
@@ -641,9 +636,6 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         else:
             # El carro está bien ("Operativo", "Terminado", etc.)
             pass
-
-
-    # EN Conexion.py (Dentro de class MainDashboard)
 
     def cargar_listado_vehiculos(self):
         """Carga los vehículos en el QFrame de la vista Ingeniería."""
