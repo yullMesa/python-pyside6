@@ -310,3 +310,70 @@ QTableWidget::item:selected {
     background-color: #6a6adc; /* Color morado para selección */
     color: white;
 }
+
+/* ==================================== */
+/* 1. Botones de Navegación (Flechas) */
+/* ==================================== */
+
+/* Los botones Atrás y Adelante pueden usar un estilo más sutil si son solo flechas */
+#btn_anterior, #btn_siguiente {
+    background-color: transparent; /* Fondo transparente */
+    color: #92A0B7; /* Color de texto/ícono (un gris suave) */
+    border: 1px solid #44475A; /* Borde sutil */
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    min-width: 80px; /* Ancho para que se vean bien */
+}
+
+#btn_anterior:hover, #btn_siguiente:hover {
+    background-color: #383A4A; /* Un color ligeramente más claro al pasar el ratón */
+}
+
+/* ==================================== */
+/* 2. Botones de Feedback (Me Gusta / No Me Gusta) */
+/* ==================================== */
+
+/* Botón Me Gusta: Éxito (verde/azul) */
+#btn_me_gusta {
+    background-color: #50FA7B; /* Un color de éxito vibrante (verde) */
+    color: #282A36; /* Texto oscuro para contraste */
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#btn_me_gusta:hover {
+    background-color: #69FF8C; 
+}
+
+/* Botón No Me Gusta: Advertencia/Neutro (rojo o gris) */
+#btn_no_gusta {
+    background-color: #FF5555; /* Un color de advertencia (rojo) */
+    color: white; 
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#btn_no_gusta:hover {
+    background-color: #FF6E6E;
+}
+
+
+/* ==================================== */
+/* 3. Etiqueta de Publicidad */
+/* ==================================== */
+
+#label_publicidad {
+    background-color: #282A36; /* Fondo oscuro para el visor */
+    border: 2px solid #44475A; /* Borde para delimitar el área de la imagen */
+    border-radius: 10px;
+    padding: 5px;
+    /* Asegura que la imagen se mantenga en el centro */
+    qproperty-alignment: AlignCenter;
+}

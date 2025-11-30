@@ -1000,23 +1000,7 @@
         </widget>
        </widget>
        <widget class="QWidget" name="page_6">
-        <widget class="QFrame" name="frame_2">
-         <property name="geometry">
-          <rect>
-           <x>-1</x>
-           <y>9</y>
-           <width>741</width>
-           <height>611</height>
-          </rect>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Shape::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="btn_me_gusta">
          <property name="geometry">
           <rect>
            <x>520</x>
@@ -1029,7 +1013,7 @@
           <string>Me Gusto</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="btn_no_gusta">
          <property name="geometry">
           <rect>
            <x>30</x>
@@ -1042,13 +1026,13 @@
           <string>No Me Gusto</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="btn_siguiente">
          <property name="geometry">
           <rect>
            <x>368</x>
            <y>640</y>
            <width>111</width>
-           <height>31</height>
+           <height>41</height>
           </rect>
          </property>
          <property name="text">
@@ -1058,13 +1042,13 @@
           <iconset theme="go-next"/>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_4">
+        <widget class="QPushButton" name="btn_anterior">
          <property name="geometry">
           <rect>
            <x>230</x>
            <y>640</y>
            <width>111</width>
-           <height>31</height>
+           <height>41</height>
           </rect>
          </property>
          <property name="text">
@@ -1072,6 +1056,19 @@
          </property>
          <property name="icon">
           <iconset theme="go-previous"/>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_publicidad">
+         <property name="geometry">
+          <rect>
+           <x>8</x>
+           <y>15</y>
+           <width>721</width>
+           <height>591</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </widget>

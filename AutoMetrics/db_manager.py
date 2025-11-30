@@ -205,7 +205,6 @@ class DatabaseManager:
     
 
     def obtener_datos_reparacion(self, vin):
-        # EN db_manager.py (Dentro de def obtener_datos_reparacion(self, vin):)
 
         query = """
         SELECT 
@@ -217,6 +216,17 @@ class DatabaseManager:
         ORDER BY SUM(tiempo_reparacion_horas) DESC
     """
         return self.execute_read_query(query, (vin,))
+    
+
+    def guardar_feedback_marketing(self, vin, nombre_anuncio, gusto):
+        """Guarda si al usuario le gustó o no el anuncio."""
+        query = """
+        INSERT INTO FeedbackMarketing (vin_serial_no, nombre_anuncio, gusta,fecha_registro)
+        VALUES (%s, %s, %s)
+        """
+        data = (vin, nombre_anuncio, gusto)
+        # Asume que tienes un método para ejecutar consultas INSERT (execute_query)
+        return self.execute_query(query, data, commit=True)
 
     
     

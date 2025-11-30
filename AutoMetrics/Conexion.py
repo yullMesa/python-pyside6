@@ -4,7 +4,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ... otras importaciones ...
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QTableWidgetItem,QLabel
+    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QTableWidgetItem,QLabel,QPushButton,QLabel,
+    QHBoxLayout,QVBoxLayout
 )
 
 # 1. Importa la clase del diseño generado por Qt Designer para el Diálogo de Inicio
@@ -17,6 +18,7 @@ import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+from PySide6.QtGui import QPixmap
 
 
 
@@ -55,7 +57,12 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
                                 database='autometrics')
         # ...
  
-        
+                # --- VARIABLES GLOBALES PARA MARKETING ---
+        self.ruta_imagenes = "/pyside6AutoInterfaz/imagenes"  # 👈 Ajusta la ruta a tu carpeta 'imagenes'
+        self.lista_anuncios = ["Anuncio_Verano_A", "Anuncio_Invierno_B", "Anuncio_Urbano_C"] # Nombres sin extensión
+        self.indice_anuncio = 0  # Inicializa el índice en el primer anuncio
+        self.anuncio_actual_vin = "5431" # Puedes mantener un VIN fijo o cargarlo dinámicamente
+        # ...
         self.setup_navigation() 
 
         # Conectar el botón de la vista de Empleados a la función de manejo
@@ -80,10 +87,13 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         elif indice_de_pagina == 3: # Ingeniería (Asumo que ahora es 3)
             # Conecta la función de editar vehículo o la principal de Ingeniería
             self.btnConfirmarCRUD.clicked.connect(self.manejar_editar_estado_vehiculo)
+            self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_ingenieria)
+            self.cargar_listado_vehiculos()
             self.btnConfirmarCRUD.setVisible(True)
         
         elif indice_de_pagina == 5: # Usuarios (No debería tener la misma visual de Ingeniería)
             # Aquí no haces nada, o conectas la función de CRUD de Usuarios
+            
             self.btnConfirmarCRUD.setVisible(False) # Ocultarlo si no lo usas en esta vista
             
         else:
@@ -247,6 +257,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
         elif indice_de_pagina == 3: # Ingeniería
             self.btnConfirmarCRUD.setVisible(True)
+            self.cargar_listado_vehiculos() 
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_ingenieria)
         
 
@@ -259,15 +270,13 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         elif indice_de_pagina == 5: 
             
             # 💥 LLAMADA CLAVE: Cargar la lista de vehículos al entrar a la vista
-            self.cargar_listado_vehiculos() 
+            
+            self.stackedWidget.setCurrentIndex(indice_de_pagina)  
         
         else:
             # En el caso de "Usuarios" (índice 7) o "Visual", oculta y no conecta.
             self.btnConfirmarCRUD.setVisible(False)
             
-        # Agrega aquí la lógica para otros índices (1, 4, 5, etc.)
-        # elif index == 4: # Vista de Ingeniería
-        #    self.btnConfirmar.clicked.connect(self.manejar_confirmar_ingenieria)
 
     def navegar_principal(self, indice_de_pagina):
         """Navega entre las vistas principales (Administrativo, Logistica, etc.)."""
@@ -699,7 +708,154 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             # Opcional: Dispara la función de cargar datos para rellenar los campos Ingenieria
             # self.cargar_datos_vehiculo()
 
-    # EN Conexion.py (Añadir a la clase MainDashboard)
+
+    def load_marketing_page(self, rol):
+
+        marketing_page = self.stackedWidget.widget(4)
+        layout = marketing_page.layout()
+        # ... (Lógica para limpiar y crear el layout si es None)
+            
+        # 1. Crear los widgets con los nombres de objeto que usarás
+        self.label_publicidad = QLabel() # Visor de imagen
+        self.btn_anterior = QPushButton("< Anterior")
+        self.btn_siguiente = QPushButton("Siguiente >")
+        self.btn_me_gusta = QPushButton("👍 Me Gusta")
+        self.btn_no_gusta = QPushButton("👎 No Me Gusta")
+        
+        # 2. Conectar los botones de navegación
+        self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
+        self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
+        
+        # 3. Conectar los botones de feedback
+        anuncio_name = self.lista_anuncios[self.indice_anuncio] # El nombre del anuncio actual
+        
+        self.btn_me_gusta.clicked.connect(
+            lambda: self.manejar_feedback(self.anuncio_actual_vin, self.lista_anuncios[self.indice_anuncio], 1)
+        )
+        self.btn_no_gusta.clicked.connect(
+            lambda: self.manejar_feedback(self.anuncio_actual_vin, self.lista_anuncios[self.indice_anuncio], 0)
+        )
+        
+        # 4. Organizar en Layouts
+        h_layout_navegacion = QHBoxLayout()
+        h_layout_navegacion.addWidget(self.btn_anterior)
+        h_layout_navegacion.addWidget(self.btn_siguiente)
+        
+        h_layout_feedback = QHBoxLayout()
+        h_layout_feedback.addWidget(self.btn_no_gusta)
+        h_layout_feedback.addWidget(self.btn_me_gusta)
+        
+        # 5. Añadir al layout principal
+        layout.addLayout(h_layout_navegacion)
+        layout.addWidget(self.label_publicidad)
+        layout.addLayout(h_layout_feedback)
+        layout.addStretch()
+        
+        # 6. 💥 Mostrar el primer anuncio
+        self.actualizar_anuncio_marketing()
+
+
+    def manejar_feedback(self, vin, anuncio, gusto):
+        # 1. Guardar en la base de datos
+        exito = self.db.guardar_feedback_marketing(vin, anuncio, gusto)
+        
+        if exito:
+            mensaje = "¡Gracias por tu opinión! Se ha registrado el feedback."
+            self.navegar_anuncio_siguiente()
+        else:
+            mensaje = "Error al registrar la opinión. Intenta de nuevo."
+            
+        QMessageBox.information(self, "Feedback", mensaje)
+        self.load_marketing_page(self.rol_seleccionado)
+        # 2. Opcional: Cargar el siguiente anuncio (llamando a load_marketing_page de nuevo)
+        # self.load_marketing_page(self.rol)
+
+    def load_marketing_page(self, rol):
+        # Asumiendo que 'page_4' es el widget para Marketing en tu StackedWidget
+        marketing_page = self.stackedWidget.widget(4) 
+        
+        layout = marketing_page.layout()
+        if layout is None:
+            layout = QVBoxLayout(marketing_page)
+            marketing_page.setLayout(layout)
+        else:
+            # Limpiar widgets existentes (Gráfica, etc.)
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                    
+        # --- Datos de Prueba / Simulación de Anuncio ---
+        vin_a_mostrar = "5431" 
+        nombre_anuncio = "Anuncio_Playero_2025"
+        
+        # 1. VISUALIZACIÓN DE LA IMAGEN
+        self.label_publicidad = QLabel()
+        # 💥 NOTA: Debes reemplazar esta ruta con la ubicación real de tu imagen
+        try:
+            pixmap = QPixmap(f"pyside6/AutoInterfaz/imagenes/{nombre_anuncio}.png") 
+            self.label_publicidad.setPixmap(pixmap.scaled(600, 400, Qt.KeepAspectRatio))
+        except:
+            self.label_publicidad.setText(f"ERROR: No se encontró la imagen: {nombre_anuncio}.png")
+            
+        self.label_publicidad.setAlignment(Qt.AlignCenter)
+        
+        # 2. BOTONES DE FEEDBACK
+        btn_gusta = btn_gusta("👍 Me Gusta")
+        btn_no_gusta = btn_no_gusta("👎 No Me Gusta")
+        
+        # 3. CONEXIÓN DE BOTONES
+        # Pasamos 1 para Gusta, 0 para No Gusta
+        btn_gusta.clicked.connect(lambda: self.manejar_feedback(vin_a_mostrar, nombre_anuncio, 1))
+        btn_no_gusta.clicked.connect(lambda: self.manejar_feedback(vin_a_mostrar, nombre_anuncio, 0))
+        
+        # 4. ORGANIZAR Y AÑADIR
+        h_layout_botones = QHBoxLayout()
+        h_layout_botones.addWidget(btn_gusta)
+        h_layout_botones.addWidget(btn_no_gusta)
+        
+        layout.addWidget(self.label_publicidad)
+        layout.addLayout(h_layout_botones)
+        layout.addStretch() # Para centrar verticalmente
+
+    def actualizar_anuncio_marketing(self):
+        ruta_completa = os.path.join(self.ruta_imagenes, f"{nombre_anuncio}.png")
+        # 1. Asegurar que el índice esté dentro del rango
+        if not self.lista_anuncios:
+            self.label_publicidad.setText("No hay anuncios disponibles.")
+            return
+            
+        # Limitar el índice:
+        self.indice_anuncio = max(0, min(self.indice_anuncio, len(self.lista_anuncios) - 1))
+        
+        # 2. Obtener el nombre y la ruta
+        nombre_anuncio = self.lista_anuncios[self.indice_anuncio]
+        ruta_completa = os.path.join(self.ruta_imagenes, f"{nombre_anuncio}.png") # Asumiendo PNG
+        
+        # 3. Cargar y mostrar la imagen
+        try:
+            pixmap = QPixmap(ruta_completa='pyside6/AutoInterfaz/imagenes/{nombre_anuncio}.png')
+            self.label_publicidad.setPixmap(pixmap.scaled(600, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        except Exception as e:
+            self.label_publicidad.setText(f"Error: No se encontró la imagen '{ruta_completa}'")
+        
+        self.label_publicidad.setAlignment(Qt.AlignCenter)
+        
+        # 4. Actualizar estado de los botones (opcional)
+        self.btn_anterior.setEnabled(self.indice_anuncio > 0)
+        self.btn_siguiente.setEnabled(self.indice_anuncio < len(self.lista_anuncios) - 1)
+
+    def navegar_anuncio_anterior(self):
+        if self.indice_anuncio > 0:
+            self.indice_anuncio -= 1
+            self.actualizar_anuncio_marketing()
+
+    def navegar_anuncio_siguiente(self):
+        if self.indice_anuncio < len(self.lista_anuncios) - 1:
+            self.indice_anuncio += 1
+            self.actualizar_anuncio_marketing()
+
 
     def create_simple_chart(self, title, data, labels):
         """Crea una gráfica de barras simple y devuelve el widget Canvas."""
