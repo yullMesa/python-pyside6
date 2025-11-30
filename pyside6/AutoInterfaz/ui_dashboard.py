@@ -430,6 +430,27 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.pageIngenieria)
         self.page_6 = QWidget()
         self.page_6.setObjectName(u"page_6")
+        self.frame_2 = QFrame(self.page_6)
+        self.frame_2.setObjectName(u"frame_2")
+        self.frame_2.setGeometry(QRect(-1, 9, 741, 611))
+        self.frame_2.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_2.setFrameShadow(QFrame.Shadow.Raised)
+        self.pushButton = QPushButton(self.page_6)
+        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton.setGeometry(QRect(520, 620, 171, 71))
+        self.pushButton_2 = QPushButton(self.page_6)
+        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.pushButton_2.setGeometry(QRect(30, 620, 171, 71))
+        self.pushButton_3 = QPushButton(self.page_6)
+        self.pushButton_3.setObjectName(u"pushButton_3")
+        self.pushButton_3.setGeometry(QRect(368, 640, 111, 31))
+        icon = QIcon(QIcon.fromTheme(u"go-next"))
+        self.pushButton_3.setIcon(icon)
+        self.pushButton_4 = QPushButton(self.page_6)
+        self.pushButton_4.setObjectName(u"pushButton_4")
+        self.pushButton_4.setGeometry(QRect(230, 640, 111, 31))
+        icon1 = QIcon(QIcon.fromTheme(u"go-previous"))
+        self.pushButton_4.setIcon(icon1)
         self.stackedWidget.addWidget(self.page_6)
         self.page_7 = QWidget()
         self.page_7.setObjectName(u"page_7")
@@ -454,7 +475,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(4)
         self.stackedWidget_2.setCurrentIndex(0)
 
 
@@ -506,6 +527,10 @@ class Ui_MainWindow(object):
 
         self.Ingebuton_6.setText(QCoreApplication.translate("MainWindow", u"Grafica", None))
         self.Ingeline.setPlaceholderText(QCoreApplication.translate("MainWindow", u"En reparacion", None))
+        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Me Gusto", None))
+        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"No Me Gusto", None))
+        self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"Adelante", None))
+        self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"Atras", None))
         self.btnConfirmarCRUD.setText(QCoreApplication.translate("MainWindow", u"Confirmar", None))
     # retranslateUi
 
