@@ -375,5 +375,5 @@ QTableWidget::item:selected {
     border-radius: 10px;
     padding: 5px;
     /* Asegura que la imagen se mantenga en el centro */
-    qproperty-alignment: AlignCenter;
+    border-image-repeat: AlignCenter;
 }

@@ -1009,6 +1009,9 @@
            <height>71</height>
           </rect>
          </property>
+         <property name="cursor">
+          <cursorShape>OpenHandCursor</cursorShape>
+         </property>
          <property name="text">
           <string>Me Gusto</string>
          </property>
@@ -1022,6 +1025,9 @@
            <height>71</height>
           </rect>
          </property>
+         <property name="cursor">
+          <cursorShape>OpenHandCursor</cursorShape>
+         </property>
          <property name="text">
           <string>No Me Gusto</string>
          </property>
@@ -1034,6 +1040,9 @@
            <width>111</width>
            <height>41</height>
           </rect>
+         </property>
+         <property name="cursor">
+          <cursorShape>OpenHandCursor</cursorShape>
          </property>
          <property name="text">
           <string>Adelante</string>
@@ -1050,6 +1059,9 @@
            <width>111</width>
            <height>41</height>
           </rect>
+         </property>
+         <property name="cursor">
+          <cursorShape>OpenHandCursor</cursorShape>
          </property>
          <property name="text">
           <string>Atras</string>
