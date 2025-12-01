@@ -61,7 +61,6 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.ruta_imagenes = "python/pyside6/AutoInterfaz/imagenes"  # 👈 Ajusta la ruta a tu carpeta 'imagenes'
         self.vehiculos_marketing = [] # Almacenará los datos de la DB: [(VIN, Marca, Modelo), ...]
         self.indice_anuncio = 0  
-        #self.anuncio_actual_vin = "5431"
         # ...
         self.setup_navigation() 
 
@@ -262,8 +261,9 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         
 
         elif indice_de_pagina == 4: # Índice de la página Visual
+            self.stackedWidget.setCurrentIndex(4) # Navega a la página 4
+            self.load_marketing_page(self.rol_seleccionado) # ¡Llama a la función de carga!
             self.btnConfirmarCRUD.setVisible(False)
-            self.load_visual_analytics(self.rol_seleccionado)
 
 
 
@@ -271,7 +271,8 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             
             # 💥 LLAMADA CLAVE: Cargar la lista de vehículos al entrar a la vista
             
-            self.stackedWidget.setCurrentIndex(indice_de_pagina)  
+            self.stackedWidget.setCurrentIndex(indice_de_pagina) 
+            self.btnConfirmarCRUD.setVisible(False) 
         
         else:
             # En el caso de "Usuarios" (índice 7) o "Visual", oculta y no conecta.
@@ -766,6 +767,8 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # --- 5. MOSTRAR EL PRIMER ANUNCIO ---
         self.actualizar_anuncio_marketing()
 
+        
+
 
     def manejar_feedback(self, vin, anuncio, gusto):
         # 1. Guardar en la base de datos
@@ -782,32 +785,6 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # 2. Opcional: Cargar el siguiente anuncio (llamando a load_marketing_page de nuevo)
         # self.load_marketing_page(self.rol)
 
-
-
-    def manejar_feedback_wrapper_gusta(self):
-        if self.vehiculos_marketing:
-            # Obtiene el VIN del vehículo actualmente visible
-            vin = self.vehiculos_marketing[self.indice_anuncio][0] 
-            nombre_anuncio = vin # Usar VIN como nombre
-
-            # Llama a la lógica de la DB (manejar_feedback)
-            self.manejar_feedback(vin, nombre_anuncio, 1) # 1 = Me Gusta
-            
-            # Mueve al siguiente anuncio
-            self.navegar_anuncio_siguiente()
-
-
-    def manejar_feedback_wrapper_no_gusta(self):
-        if self.vehiculos_marketing:
-            # Obtiene el VIN del vehículo actualmente visible
-            vin = self.vehiculos_marketing[self.indice_anuncio][0]
-            nombre_anuncio = vin # Usar VIN como nombre
-
-            # Llama a la lógica de la DB (manejar_feedback)
-            self.manejar_feedback(vin, nombre_anuncio, 0) # 0 = No Me Gusta
-            
-            # Mueve al siguiente anuncio
-            self.navegar_anuncio_siguiente()
 
     # El método central que guarda el feedback y avanza
     def _registrar_feedback_marketing(self, gusto_binario):
