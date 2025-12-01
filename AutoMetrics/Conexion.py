@@ -58,10 +58,10 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # ...
  
                 # --- VARIABLES GLOBALES PARA MARKETING ---
-        self.ruta_imagenes = "pyside6/AutoInterfaz/imagenes"  # 👈 Ajusta la ruta a tu carpeta 'imagenes'
+        self.ruta_imagenes = "python/pyside6/AutoInterfaz/imagenes"  # 👈 Ajusta la ruta a tu carpeta 'imagenes'
         self.vehiculos_marketing = [] # Almacenará los datos de la DB: [(VIN, Marca, Modelo), ...]
         self.indice_anuncio = 0  
-        self.anuncio_actual_vin = "5431"
+        #self.anuncio_actual_vin = "5431"
         # ...
         self.setup_navigation() 
 
@@ -709,7 +709,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             # self.cargar_datos_vehiculo()
 
     def load_marketing_page(self, rol):
-        marketing_page = self.stackedWidget.widget(4) # Asumiendo índice 4
+        marketing_page = self.stackedWidget.widget(4) 
 
         # --- 1. LIMPIEZA Y LAYOUT ---
         layout = marketing_page.layout()
@@ -746,6 +746,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # --- 3. CONEXIÓN DE BOTONES (Sin lambda) ---
         self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
         self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
+        # 2. Conectar los botones de feedback (¡Limpio y sin lambda!)
         self.btn_me_gusta.clicked.connect(self.manejar_feedback_wrapper_gusta)
         self.btn_no_gusta.clicked.connect(self.manejar_feedback_wrapper_no_gusta)
 
@@ -781,80 +782,6 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # 2. Opcional: Cargar el siguiente anuncio (llamando a load_marketing_page de nuevo)
         # self.load_marketing_page(self.rol)
 
-    def load_marketing_page(self, rol):
-        # Asumiendo que 'page_4' es el widget para Marketing en tu StackedWidget
-        marketing_page = self.stackedWidget.widget(4) 
-
-        self.btn_me_gusta.clicked.connect(self.manejar_feedback_wrapper_gusta)
-        self.btn_no_gusta.clicked.connect(self.manejar_feedback_wrapper_no_gusta)
-
-        self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
-        self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
-        
-        layout = marketing_page.layout()
-        if layout is not None:
-            while layout.count():
-                item = layout.takeAt(0)
-                widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
-        else:
-            # Si no tiene layout (primera vez), lo creamos
-            layout = QVBoxLayout(marketing_page)
-            marketing_page.setLayout(layout)
-            
-        # --- LÓGICA CLAVE: Cargar Anuncios Reales ---
-        
-        # 💥 CRÍTICO: Eliminar/Ignorar las líneas 796 y 797 de tu código antiguo
-        # vin_a_mostrar = "5431"
-        # nombre_anuncio = "Anuncio_Playero_2025"
-        
-        # 1. Obtener la lista de vehículos reales desde la DB
-        self.vehiculos_marketing = self.db.guardar_feedback_marketing() 
-
-        if not self.vehiculos_marketing:
-            # Muestra mensaje si no hay vehículos listos
-            self.label_publicidad.setText("No hay vehículos listos para publicidad.")
-            layout.addWidget(self.label_publicidad)
-            return
-
-        # Inicializar el índice al primero
-        self.indice_anuncio = 0
-        
-        # 2. Recrear/Obtener Elementos (Asegúrate que existen como atributos en self)
-        self.label_publicidad = QLabel() # Si se crean aquí, deben ser 'self.label_publicidad'
-        self.btn_anterior = QPushButton("<- Atrás")
-        self.btn_siguiente = QPushButton("Adelante ->")
-        self.btn_me_gusta = QPushButton("👍 Me Gusta")
-        self.btn_no_gusta = QPushButton("👎 No Me Gusta")
-
-        # 3. Conexión de Botones (Usando los métodos wrapper que acceden a self.indice_anuncio)
-        self.btn_me_gusta.clicked.connect(self.manejar_feedback_wrapper_gusta)
-        self.btn_no_gusta.clicked.connect(self.manejar_feedback_wrapper_no_gusta)
-        self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
-        self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
-
-        # 4. Organizar y Añadir (CÓDIGO DE TU REPOSITORIO)
-        # ... (Añadir label_publicidad, h_layout_botones, etc. al layout principal)
-        
-        # 5. Mostrar el primer anuncio (Llama a la función que usa self.vehiculos_marketing)
-        self.actualizar_anuncio_marketing()
-            
-        self.label_publicidad.setAlignment(Qt.AlignCenter)
-        
-        # 2. BOTONES DE FEEDBACK
-        btn_gusta = btn_gusta("👍 Me Gusta")
-        btn_no_gusta = btn_no_gusta("👎 No Me Gusta")
-        
-        
-        # 4. ORGANIZAR Y AÑADIR
-        h_layout_botones = QHBoxLayout()
-        h_layout_botones.addWidget(btn_gusta)
-        h_layout_botones.addWidget(btn_no_gusta)
-        
-        layout.addWidget(self.label_publicidad)
-        layout.addLayout(h_layout_botones)
-        layout.addStretch() # Para centrar verticalmente
 
 
     def manejar_feedback_wrapper_gusta(self):
@@ -924,6 +851,14 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # Asegúrate de usar la ruta base que definiste en __init__
         ruta_completa = os.path.join(self.ruta_imagenes, f"{nombre_anuncio_archivo}.png") 
 
+        self.label_publicidad.setAlignment(Qt.AlignCenter)
+        
+        # 4. Actualizar estado de los botones (opcional, usando la lista real)
+        self.btn_anterior.setEnabled(self.indice_anuncio > 0)
+        # Usa len(self.vehiculos_marketing) en lugar de len(self.lista_anuncios)
+        self.btn_siguiente.setEnabled(self.indice_anuncio < len(self.vehiculos_marketing) - 1)
+
+
         # 3. Cargar y mostrar la imagen
         try:
             pixmap = QPixmap(ruta_completa)
@@ -945,13 +880,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         except Exception as e:
             self.label_publicidad.setText(f"Error al cargar imagen: {e}") 
 
-        self.label_publicidad.setAlignment(Qt.AlignCenter)
-        
-        # 4. Actualizar estado de los botones (opcional, usando la lista real)
-        self.btn_anterior.setEnabled(self.indice_anuncio > 0)
-        # Usa len(self.vehiculos_marketing) en lugar de len(self.lista_anuncios)
-        self.btn_siguiente.setEnabled(self.indice_anuncio < len(self.vehiculos_marketing) - 1)
-
+      
     def navegar_anuncio_anterior(self):
         if self.indice_anuncio > 0:
             self.indice_anuncio -= 1
