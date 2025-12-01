@@ -219,13 +219,13 @@ class DatabaseManager:
     
 
     def guardar_feedback_marketing(self, vin, nombre_anuncio, gusto):
-        """Guarda si al usuario le gustó o no el anuncio."""
+        """Guarda si al usuario le gustó o no el anuncio en la tabla feedback."""
+        # Insertar sin fecha_registro; MySQL asignará NOW() automáticamente si tiene DEFAULT
         query = """
-        INSERT INTO FeedbackMarketing (vin_serial_no, nombre_anuncio, gusta,fecha_registro)
+        INSERT INTO feedback (vin_serial_no, nombre_anuncio, gusta)
         VALUES (%s, %s, %s)
         """
         data = (vin, nombre_anuncio, gusto)
-        # Asume que tienes un método para ejecutar consultas INSERT (execute_query)
         return self.execute_query(query, data)
 
     
