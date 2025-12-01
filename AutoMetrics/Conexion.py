@@ -720,18 +720,13 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
     def load_marketing_page(self, rol):
         marketing_page = self.stackedWidget.widget(4) 
 
-        # --- 1. LIMPIEZA Y LAYOUT ---
+        # --- 1. LAYOUT ---
+        # Usamos el layout ya definido en Designer. No eliminamos widgets
+        # para evitar borrar los botones y el QLabel que vienen del .ui
         layout = marketing_page.layout()
         if layout is None:
             layout = QVBoxLayout(marketing_page)
             marketing_page.setLayout(layout)
-        else:
-            # Lógica para limpiar el layout existente
-            while layout.count():
-                item = layout.takeAt(0)
-                widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
         
         # 💥 CRÍTICO: Cargar vehiculos_marketing (de la DB o prueba)
         # Cargar la lista real de vehículos desde la base de datos
@@ -750,50 +745,61 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.indice_anuncio = 0
 
         if not self.vehiculos_marketing:
-            # Manejo de caso sin datos
-            self.label_publicidad = QLabel("No hay vehículos listos para publicidad.")
-            layout.addWidget(self.label_publicidad)
+            # Manejo de caso sin datos: usar el QLabel del UI si existe
+            if hasattr(self, 'label_publicidad') and self.label_publicidad is not None:
+                self.label_publicidad.setText("No hay vehículos listos para publicidad.")
+            else:
+                # Crear un QLabel temporal si por alguna razón no existe
+                temp = QLabel("No hay vehículos listos para publicidad.")
+                layout.addWidget(temp)
             return
 
-        # --- 2. CREACIÓN DE WIDGETS (TODOS DEBEN SER self.widgets) ---
-        self.label_publicidad = QLabel()
-        self.btn_anterior = QPushButton("<- Anterior")
-        self.btn_siguiente = QPushButton("Siguiente ->")
-        self.btn_me_gusta = QPushButton("👍 Me Gusta") 
-        self.btn_no_gusta = QPushButton("👎 No Me Gusta") 
+        # --- Usar widgets definidos en el .ui (no crear nuevos) ---
+        # Asegurarnos de tener referencias a los widgets generados por Designer
+        if not hasattr(self, 'label_publicidad') or self.label_publicidad is None:
+            self.label_publicidad = marketing_page.findChild(QLabel, 'label_publicidad')
 
-        # --- 3. CONEXIÓN DE BOTONES (Sin lambda) ---
-        self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
-        self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
-        # 2. Conectar los botones de feedback (¡Limpio y sin lambda!)
-        self.btn_me_gusta.clicked.connect(
-            lambda: self.manejar_feedback(
-                self.vehiculos_marketing[self.indice_anuncio][0], # VIN del anuncio actual
-                self.vehiculos_marketing[self.indice_anuncio][0], # Usar VIN como 'nombre_anuncio'
-                1 # Gusta
-            )
-        )
-        self.btn_no_gusta.clicked.connect(
-            lambda: self.manejar_feedback(
-                self.vehiculos_marketing[self.indice_anuncio][0], # VIN del anuncio actual
-                self.vehiculos_marketing[self.indice_anuncio][0], # Usar VIN como 'nombre_anuncio'
-                0 # No Gusta
-            )
-        )
-        # --- 4. ORGANIZAR EN LAYOUTS ---
-        # Layout que contiene solo los botones (Navegación y Feedback combinados)
-        h_layout_botones = QHBoxLayout()
-        h_layout_botones.addWidget(self.btn_no_gusta)
-        h_layout_botones.addWidget(self.btn_anterior)
-        h_layout_botones.addWidget(self.btn_siguiente)
-        h_layout_botones.addWidget(self.btn_me_gusta)
-        
-        # Añadir al layout principal (CRÍTICO: Añadir el label y los botones)
-        layout.addWidget(self.label_publicidad)
-        layout.addLayout(h_layout_botones)
-        layout.addStretch()
+        if not hasattr(self, 'btn_anterior') or self.btn_anterior is None:
+            self.btn_anterior = marketing_page.findChild(QPushButton, 'btn_anterior')
 
-        # --- 5. MOSTRAR EL PRIMER ANUNCIO ---
+        if not hasattr(self, 'btn_siguiente') or self.btn_siguiente is None:
+            self.btn_siguiente = marketing_page.findChild(QPushButton, 'btn_siguiente')
+
+        if not hasattr(self, 'btn_me_gusta') or self.btn_me_gusta is None:
+            self.btn_me_gusta = marketing_page.findChild(QPushButton, 'btn_me_gusta')
+
+        if not hasattr(self, 'btn_no_gusta') or self.btn_no_gusta is None:
+            self.btn_no_gusta = marketing_page.findChild(QPushButton, 'btn_no_gusta')
+
+        # Desconectar handlers previos (si existen) y volver a conectar
+        try:
+            self.btn_anterior.clicked.disconnect()
+        except Exception:
+            pass
+        try:
+            self.btn_siguiente.clicked.disconnect()
+        except Exception:
+            pass
+        try:
+            self.btn_me_gusta.clicked.disconnect()
+        except Exception:
+            pass
+        try:
+            self.btn_no_gusta.clicked.disconnect()
+        except Exception:
+            pass
+
+        # Conectar a las funciones existentes
+        if self.btn_anterior is not None:
+            self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
+        if self.btn_siguiente is not None:
+            self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
+        if self.btn_me_gusta is not None:
+            self.btn_me_gusta.clicked.connect(lambda: self.manejar_feedback(self.vehiculos_marketing[self.indice_anuncio][0], self.vehiculos_marketing[self.indice_anuncio][0], 1))
+        if self.btn_no_gusta is not None:
+            self.btn_no_gusta.clicked.connect(lambda: self.manejar_feedback(self.vehiculos_marketing[self.indice_anuncio][0], self.vehiculos_marketing[self.indice_anuncio][0], 0))
+
+        # Mostrar el primer anuncio usando el QLabel existente
         self.actualizar_anuncio_marketing()
 
         
@@ -957,8 +963,8 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             if pixmap.isNull():
                 raise RuntimeError("QPixmap no pudo cargar la imagen (archivo corrupto o formato no soportado)")
 
-            # Establecer el pixmap escalado en el QLabel
-            self.label_publicidad.setPixmap(pixmap.scaled(600, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            # Establecer el pixmap escalado en el QLabel (más grande)
+            self.label_publicidad.setPixmap(pixmap.scaled(800, 650, Qt.KeepAspectRatio, Qt.SmoothTransformation))
             self.label_publicidad.setAlignment(Qt.AlignCenter)
             self.label_publicidad.setStyleSheet("background: transparent;")
 
