@@ -19,6 +19,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from PySide6.QtGui import QPixmap
+import json
+import time
 
 
 
@@ -55,17 +57,23 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.db = DatabaseManager(host='127.0.0.1', user='root',
                                 password='Yull123', # O la clave que definiste para el nuevo usuario
                                 database='autometrics')
+        # Intentar reenviar feedbacks pendientes almacenados localmente (si los hay)
+        try:
+            self.flush_pending_feedback()
+        except Exception as e:
+            print(f"[WARN] No se pudo flush pending feedback al iniciar: {e}")
         # ...
- 
-                # --- VARIABLES GLOBALES PARA MARKETING ---
-        self.ruta_imagenes = "python/pyside6/AutoInterfaz/imagenes"  # 👈 Ajusta la ruta a tu carpeta 'imagenes'
+        # --- VARIABLES GLOBALES PARA MARKETING ---
+        # Ruta absoluta a la carpeta de imágenes (pyside6/AutoInterfaz/imagenes)
+        self.ruta_imagenes = os.path.abspath(os.path.join(BASE_DIR, '..', 'pyside6', 'AutoInterfaz', 'imagenes'))
         self.vehiculos_marketing = [] # Almacenará los datos de la DB: [(VIN, Marca, Modelo), ...]
-        self.indice_anuncio = 0  
+        self.indice_anuncio = 0
         # ...
-        self.setup_navigation() 
+        self.setup_navigation()
 
         # Conectar el botón de la vista de Empleados a la función de manejo
-        self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_empleado,self.manejar_confirmar_vehiculo)
+        # NOTA: connect() acepta un único slot; conectar múltiples funciones debe hacerse en llamadas separadas.
+        self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_empleado)
        
         self.inicializar_vista_visual()
 
@@ -726,10 +734,20 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
                     widget.deleteLater()
         
         # 💥 CRÍTICO: Cargar vehiculos_marketing (de la DB o prueba)
-        if not hasattr(self, 'vehiculos_marketing') or not self.vehiculos_marketing:
-            # Usar datos de prueba si no se han cargado (ej: self.db.obtener_vehiculos_para_marketing())
-            self.vehiculos_marketing = [("5431", "Chevrolet", "Captiva"), ("5432", "Ford", "Fiesta")] 
-            self.indice_anuncio = 0 
+        # Cargar la lista real de vehículos desde la base de datos
+        try:
+            resultados = self.db.obtener_lista_vehiculos()
+            # resultados es una lista de tuplas: [(vin, marca, modelo), ...]
+            if resultados:
+                self.vehiculos_marketing = resultados
+            else:
+                self.vehiculos_marketing = []
+            self.indice_anuncio = 0
+        except Exception as e:
+            print(f"Error al obtener vehículos para marketing desde DB: {e}")
+            # Fallback a una lista vacía
+            self.vehiculos_marketing = []
+            self.indice_anuncio = 0
 
         if not self.vehiculos_marketing:
             # Manejo de caso sin datos
@@ -748,9 +766,20 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.btn_anterior.clicked.connect(self.navegar_anuncio_anterior)
         self.btn_siguiente.clicked.connect(self.navegar_anuncio_siguiente)
         # 2. Conectar los botones de feedback (¡Limpio y sin lambda!)
-        self.btn_me_gusta.clicked.connect(self.manejar_feedback_wrapper_gusta)
-        self.btn_no_gusta.clicked.connect(self.manejar_feedback_wrapper_no_gusta)
-
+        self.btn_me_gusta.clicked.connect(
+            lambda: self.manejar_feedback(
+                self.vehiculos_marketing[self.indice_anuncio][0], # VIN del anuncio actual
+                self.vehiculos_marketing[self.indice_anuncio][0], # Usar VIN como 'nombre_anuncio'
+                1 # Gusta
+            )
+        )
+        self.btn_no_gusta.clicked.connect(
+            lambda: self.manejar_feedback(
+                self.vehiculos_marketing[self.indice_anuncio][0], # VIN del anuncio actual
+                self.vehiculos_marketing[self.indice_anuncio][0], # Usar VIN como 'nombre_anuncio'
+                0 # No Gusta
+            )
+        )
         # --- 4. ORGANIZAR EN LAYOUTS ---
         # Layout que contiene solo los botones (Navegación y Feedback combinados)
         h_layout_botones = QHBoxLayout()
@@ -771,17 +800,97 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
 
     def manejar_feedback(self, vin, anuncio, gusto):
-        # 1. Guardar en la base de datos
-        exito = self.db.guardar_feedback_marketing(vin, anuncio, gusto)
-        
+        # Depuración: imprimir lo que se intenta guardar
+        print(f"[DEBUG] guardar_feedback_marketing -> vin={vin}, anuncio={anuncio}, gusto={gusto}")
+        # 1. Intentar guardar en la base de datos
+        exito = False
+        try:
+            exito = self.db.guardar_feedback_marketing(vin, anuncio, gusto)
+        except Exception as e:
+            print(f"[ERROR] Error al guardar feedback en DB: {e}")
+
+        # 2. Manejo según resultado: si falla, guardar localmente en archivo JSON como fallback
         if exito:
             mensaje = "¡Gracias por tu opinión! Se ha registrado el feedback."
             self.navegar_anuncio_siguiente()
         else:
-            mensaje = "Error al registrar la opinión. Intenta de nuevo."
-            
+            # Guardar localmente para reenviar después
+            try:
+                self.save_feedback_locally(vin, anuncio, gusto)
+                mensaje = "No se pudo enviar a la base de datos. Feedback guardado localmente y será reenviado cuando haya conexión."
+                # Avanzar igualmente para que el usuario vea el siguiente anuncio
+                self.navegar_anuncio_siguiente()
+            except Exception as e:
+                print(f"[ERROR] No se pudo guardar feedback localmente: {e}")
+                mensaje = "Error al registrar la opinión. Intenta de nuevo más tarde."
+
         QMessageBox.information(self, "Feedback", mensaje)
+        # Recargar la página para reflejar el siguiente anuncio
         self.load_marketing_page(self.rol_seleccionado)
+
+    def save_feedback_locally(self, vin, nombre_anuncio, gusto):
+        """Guarda el feedback en un archivo local `pending_feedback.json` para reenviar luego."""
+        ruta_pending = os.path.join(BASE_DIR, 'pending_feedback.json')
+        registro = {
+            'vin': vin,
+            'nombre_anuncio': nombre_anuncio,
+            'gusta': gusto,
+            'timestamp': int(time.time())
+        }
+
+        datos = []
+        if os.path.exists(ruta_pending):
+            try:
+                with open(ruta_pending, 'r', encoding='utf-8') as f:
+                    datos = json.load(f)
+            except Exception:
+                datos = []
+
+        datos.append(registro)
+
+        with open(ruta_pending, 'w', encoding='utf-8') as f:
+            json.dump(datos, f, ensure_ascii=False, indent=2)
+
+    def flush_pending_feedback(self):
+        """Intenta reenviar feedbacks pendientes al servidor y eliminar los exitosos."""
+        ruta_pending = os.path.join(BASE_DIR, 'pending_feedback.json')
+        if not os.path.exists(ruta_pending):
+            return
+
+        try:
+            with open(ruta_pending, 'r', encoding='utf-8') as f:
+                pendientes = json.load(f)
+        except Exception as e:
+            print(f"[WARN] No se pudo leer pending_feedback.json: {e}")
+            return
+
+        reenviar = []
+        for item in pendientes:
+            try:
+                vin = item.get('vin')
+                nombre = item.get('nombre_anuncio')
+                gusta = item.get('gusta')
+                print(f"[INFO] Reenviando feedback pendiente: vin={vin}, nombre={nombre}, gusta={gusta}")
+                exito = self.db.guardar_feedback_marketing(vin, nombre, gusta)
+                if not exito:
+                    reenviar.append(item)
+            except Exception as e:
+                print(f"[WARN] Error reenviando item pendiente: {e}")
+                reenviar.append(item)
+
+        # Sobrescribir el archivo con los no reenviados (si queda alguno)
+        if reenviar:
+            try:
+                with open(ruta_pending, 'w', encoding='utf-8') as f:
+                    json.dump(reenviar, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                print(f"[WARN] No se pudo actualizar pending_feedback.json: {e}")
+        else:
+            # Si todo se reenvió correctamente, eliminar el archivo
+            try:
+                os.remove(ruta_pending)
+            except Exception:
+                pass
         # 2. Opcional: Cargar el siguiente anuncio (llamando a load_marketing_page de nuevo)
         # self.load_marketing_page(self.rol)
 
@@ -837,25 +946,27 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
 
         # 3. Cargar y mostrar la imagen
+        # Intentar cargar la imagen desde la ruta calculada
         try:
-            pixmap = QPixmap(ruta_completa)
-            
-            if pixmap.isNull():
-                raise FileNotFoundError() 
+            # Depuración: imprimir ruta y existencia en consola
+            print(f"[DEBUG] Intentando cargar imagen: {ruta_completa} | exists={os.path.exists(ruta_completa)}")
+            if not os.path.exists(ruta_completa):
+                raise FileNotFoundError(ruta_completa)
 
-            self.label_publicidad.setPixmap(
-                pixmap.scaled(
-                    600, 
-                    400, 
-                    Qt.KeepAspectRatio, 
-                    Qt.SmoothTransformation
-                )
-            )
-            
-        except FileNotFoundError:
-            self.label_publicidad.setText(f"ERROR: Imagen no encontrada para VIN {vin_actual}.\nBusca el archivo: {nombre_anuncio_archivo}.png en la ruta: {self.ruta_base_anuncios}")
+            pixmap = QPixmap(ruta_completa)
+            if pixmap.isNull():
+                raise RuntimeError("QPixmap no pudo cargar la imagen (archivo corrupto o formato no soportado)")
+
+            # Establecer el pixmap escalado en el QLabel
+            self.label_publicidad.setPixmap(pixmap.scaled(600, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            self.label_publicidad.setAlignment(Qt.AlignCenter)
+            self.label_publicidad.setStyleSheet("background: transparent;")
+
+        except FileNotFoundError as fnf:
+            ruta_err = fnf.args[0] if fnf.args else ruta_completa
+            self.label_publicidad.setText(f"ERROR: Imagen no encontrada para VIN {vin_actual}.\nArchivo buscado: {ruta_err}")
         except Exception as e:
-            self.label_publicidad.setText(f"Error al cargar imagen: {e}") 
+            self.label_publicidad.setText(f"Error al cargar imagen: {e}")
 
       
     def navegar_anuncio_anterior(self):

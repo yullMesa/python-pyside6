@@ -95,7 +95,7 @@ class DatabaseManager:
         data = (nuevo_estado, vin_serial_no)
         
         # Retorna True si la consulta se ejecuta con éxito
-        return self.execute_query(query, data, commit=True)
+        return self.execute_query(query, data)
     
 
     # Debes añadir esta función
@@ -226,7 +226,7 @@ class DatabaseManager:
         """
         data = (vin, nombre_anuncio, gusto)
         # Asume que tienes un método para ejecutar consultas INSERT (execute_query)
-        return self.execute_query(query, data, commit=True)
+        return self.execute_query(query, data)
 
     
     
