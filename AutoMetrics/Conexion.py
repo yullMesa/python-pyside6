@@ -48,28 +48,33 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
                 # ⭐️ LÓGICA CLAVE: Configurar la vista interna según el rol
         # ⭐️ 2. ASIGNAR LA VARIABLE 'rol_seleccionado' AL OBJETO (¡ESTO ES VITAL!)
         self.rol_seleccionado = rol_seleccionado
-        self.configurar_dashboard_por_rol(self.rol_seleccionado)
-        #
 
-        self.rol = rol_seleccionado
-        self.Ingebuton_6.clicked.connect(self.mostrar_grafica_reparacion)
-        self.Ingeline.editingFinished.connect(self.cargar_datos_vehiculo)
-        self.db = DatabaseManager(host='127.0.0.1', user='root',
-                                password='Yull123', # O la clave que definiste para el nuevo usuario
-                                database='autometrics')
-        # Intentar reenviar feedbacks pendientes almacenados localmente (si los hay)
-        try:
-            self.flush_pending_feedback()
-        except Exception as e:
-            print(f"[WARN] No se pudo flush pending feedback al iniciar: {e}")
-        # ...
         # --- VARIABLES GLOBALES PARA MARKETING ---
         # Ruta absoluta a la carpeta de imágenes (pyside6/AutoInterfaz/imagenes)
         self.ruta_imagenes = os.path.abspath(os.path.join(BASE_DIR, '..', 'pyside6', 'AutoInterfaz', 'imagenes'))
         self.vehiculos_marketing = [] # Almacenará los datos de la DB: [(VIN, Marca, Modelo), ...]
         self.indice_anuncio = 0
-        # ...
+
+        # Setup navegación (necesario para que configurar_dashboard_por_rol pueda mostrar/ocultar botones)
         self.setup_navigation()
+
+        # Inicializar la conexión a la base de datos ahora (antes de configurar la vista)
+        self.db = DatabaseManager(host='127.0.0.1', user='root',
+                                password='Yull123', # O la clave que definiste para el nuevo usuario
+                                database='autometrics')
+
+        # Intentar reenviar feedbacks pendientes almacenados localmente (si los hay)
+        try:
+            self.flush_pending_feedback()
+        except Exception as e:
+            print(f"[WARN] No se pudo flush pending feedback al iniciar: {e}")
+
+        # Ahora configurar la vista (puede llamar a load_marketing_page porque DB ya existe)
+        self.configurar_dashboard_por_rol(self.rol_seleccionado)
+
+        self.rol = rol_seleccionado
+        self.Ingebuton_6.clicked.connect(self.mostrar_grafica_reparacion)
+        self.Ingeline.editingFinished.connect(self.cargar_datos_vehiculo)
 
         # Conectar el botón de la vista de Empleados a la función de manejo
         # NOTA: connect() acepta un único slot; conectar múltiples funciones debe hacerse en llamadas separadas.
@@ -363,7 +368,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # Añade aquí los demás roles: "Marketing", "Cliente", etc.
         "Marketing": {
             "botones": [self.btnMarketing],
-            "vista_inicial": 4 # Vista de Marketing
+            "vista_inicial": 4 # Vista de Marketing (page_6 está en índice 4)
         },
         "Cliente": {
             "botones": [self.btnVehicles, self.btnUsers],
@@ -398,6 +403,12 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
             # Establecer la vista inicial
             self.stackedWidget.setCurrentIndex(config["vista_inicial"])
+            # Si la vista inicial es Marketing, cargar la página ahora que la DB está disponible
+            if rol == "Marketing":
+                try:
+                    self.load_marketing_page(rol)
+                except Exception as e:
+                    print(f"[WARN] No se pudo cargar la página de Marketing en configurar_dashboard_por_rol: {e}")
             
             # Seleccionar el primer botón del rol (para que aparezca resaltado)
             if botones_permitidos:
@@ -718,7 +729,8 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             # self.cargar_datos_vehiculo()
 
     def load_marketing_page(self, rol):
-        marketing_page = self.stackedWidget.widget(4) 
+        # page_6 está en índice 4 del stackedWidget según el UI
+        marketing_page = self.stackedWidget.widget(4)
 
         # --- 1. LAYOUT ---
         # Usamos el layout ya definido en Designer. No eliminamos widgets
