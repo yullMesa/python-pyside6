@@ -238,61 +238,45 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
 
     def navegar_a(self, indice_de_pagina):
         """
-        Función que cambia la vista visible del QStackedWidget.
+        Cambia la vista del QStackedWidget y configura el botón Confirmar según la página.
         """
-        # Asume que tu QStackedWidget generado en ui_dashboard.py se llama 'stackedWidget'
-        self.stackedWidget.setCurrentIndex(indice_de_pagina)
-            # Lógica de navegación del stackedWidget
-        
-        # ----------------------------------------------------
-        # Lógica de Reconexión del Botón Confirmar
-        # ----------------------------------------------------
-        
-        # Paso 1: Resetear la conexión previa
-        self.desconectar_btn_confirmar() 
-        # 1. Desconecta (ya tienes esta parte)
-        self.btnConfirmarCRUD.clicked.disconnect() 
-
-        # 2. Conecta con el nombre CORRECTO
-        self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_vehiculo)
-        # 2. Navegar a la página
+        # 1. Navegar a la página
         self.stackedWidget.setCurrentIndex(indice_de_pagina)
 
-        # Paso 2: Conectar la función específica según el índice de la vista
-        if indice_de_pagina == 0:  # Vista de Administración (Gestión Humana/Empleados)
+        # 2. Desconectar el botón Confirmar de conexiones previas
+        try:
+            self.btnConfirmarCRUD.clicked.disconnect()
+        except Exception:
+            pass
+
+        # 3. Configurar visibilidad y conexión del botón según la página
+        if indice_de_pagina == 0:  # Administración (Empleados)
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_empleado)
             self.btnConfirmarCRUD.setVisible(True)
-            
-        elif indice_de_pagina == 1:  # Vista de Vehículos (Logística)
-            # Debes tener una función CRUD específica para vehículos
+
+        elif indice_de_pagina == 1:  # Logística (Vehículos)
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_vehiculo)
             self.btnConfirmarCRUD.setVisible(True)
 
-        elif indice_de_pagina == 3: # Ingeniería
-            self.btnConfirmarCRUD.setVisible(True)
-            self.cargar_listado_vehiculos() 
+        elif indice_de_pagina == 2:  # Visual (Gráficos)
+            self.btnConfirmarCRUD.setVisible(False)
+
+        elif indice_de_pagina == 3:  # Ingeniería
+            self.cargar_listado_vehiculos()
             self.btnConfirmarCRUD.clicked.connect(self.manejar_confirmar_ingenieria)
-        
+            self.btnConfirmarCRUD.setVisible(True)
 
-        elif indice_de_pagina == 4: # Índice de la página Visual
-            self.stackedWidget.setCurrentIndex(4) # Navega a la página 4
-            self.load_marketing_page(self.rol_seleccionado) # ¡Llama a la función de carga!
+        elif indice_de_pagina == 4:  # Marketing
+            self.load_marketing_page(self.rol_seleccionado)
+            self.btnConfirmarCRUD.setVisible(True)  # ✅ VISIBLE para Marketing
+
+        elif indice_de_pagina == 5:  # Usuarios
+            self.load_users_page()
             self.btnConfirmarCRUD.setVisible(False)
 
-
-
-        elif indice_de_pagina == 5: 
-            
-            # 💥 LLAMADA CLAVE: Cargar la lista de vehículos al entrar a la vista
-            
-            self.stackedWidget.setCurrentIndex(5) # Navega a la página 5
-            self.load_users_page() # Llama a la nueva función de carga
-            self.btnConfirmarCRUD.setVisible(False)
-        
         else:
-            # En el caso de "Usuarios" (índice 7) o "Visual", oculta y no conecta.
+            # Para cualquier otra página, ocultar el botón
             self.btnConfirmarCRUD.setVisible(False)
-            
 
     def navegar_principal(self, indice_de_pagina):
         """Navega entre las vistas principales (Administrativo, Logistica, etc.)."""
