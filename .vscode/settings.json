@@ -1,6 +1,7 @@
 {
     "python.analysis.extraPaths": [
         "./pyside6/AutoMetrics",
-        "./pyside6"
+        "./pyside6",
+        "./AutoMetrics"
     ]
 }
