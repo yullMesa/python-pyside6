@@ -373,8 +373,15 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             "vista_inicial": 4 # Vista de Marketing (page_6 está en índice 4)
         },
         "Cliente": {
-            "botones": [self.btnVehicles, self.btnUsers],
-            "vista_inicial": 5 # Vista de Cliente
+            "botones": [
+                self.btnAdministrador, 
+                self.btnIngenieria, 
+                self.btnLogistico, 
+                self.btnMarketing, 
+                self.btnUsers, 
+                self.btnVehicles
+            ],
+            "vista_inicial": 0 # Mismo que Administrativa: Vista de Administrador/Empleados
         }
         }
 
