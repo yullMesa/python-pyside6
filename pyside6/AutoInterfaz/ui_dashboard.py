@@ -456,6 +456,21 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.page_6)
         self.page_7 = QWidget()
         self.page_7.setObjectName(u"page_7")
+        self.label_18 = QLabel(self.page_7)
+        self.label_18.setObjectName(u"label_18")
+        self.label_18.setGeometry(QRect(-2, 5, 441, 351))
+        self.btnCompra = QPushButton(self.page_7)
+        self.btnCompra.setObjectName(u"btnCompra")
+        self.btnCompra.setGeometry(QRect(490, 140, 171, 121))
+        self.btnNoCompra = QPushButton(self.page_7)
+        self.btnNoCompra.setObjectName(u"btnNoCompra")
+        self.btnNoCompra.setGeometry(QRect(490, 507, 171, 121))
+        self.btnLista = QPushButton(self.page_7)
+        self.btnLista.setObjectName(u"btnLista")
+        self.btnLista.setGeometry(QRect(490, 340, 171, 61))
+        self.label_19 = QLabel(self.page_7)
+        self.label_19.setObjectName(u"label_19")
+        self.label_19.setGeometry(QRect(0, 360, 441, 341))
         self.stackedWidget.addWidget(self.page_7)
         self.btnConfirmarCRUD = QPushButton(self.frame1)
         self.btnConfirmarCRUD.setObjectName(u"btnConfirmarCRUD")
@@ -477,7 +492,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(4)
+        self.stackedWidget.setCurrentIndex(5)
         self.stackedWidget_2.setCurrentIndex(0)
 
 
@@ -534,6 +549,11 @@ class Ui_MainWindow(object):
         self.btn_siguiente.setText(QCoreApplication.translate("MainWindow", u"Adelante", None))
         self.btn_anterior.setText(QCoreApplication.translate("MainWindow", u"Atras", None))
         self.label_publicidad.setText("")
+        self.label_18.setText("")
+        self.btnCompra.setText(QCoreApplication.translate("MainWindow", u"Comprar", None))
+        self.btnNoCompra.setText(QCoreApplication.translate("MainWindow", u"No Comprar", None))
+        self.btnLista.setText(QCoreApplication.translate("MainWindow", u"Lista", None))
+        self.label_19.setText("")
         self.btnConfirmarCRUD.setText(QCoreApplication.translate("MainWindow", u"Confirmar", None))
     # retranslateUi
 

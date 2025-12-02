@@ -174,7 +174,7 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>5</number>
        </property>
        <widget class="QWidget" name="page1">
         <widget class="QLabel" name="lblTituloEmpleados">
@@ -1084,7 +1084,73 @@
          </property>
         </widget>
        </widget>
-       <widget class="QWidget" name="page_7"/>
+       <widget class="QWidget" name="page_7">
+        <widget class="QLabel" name="label_18">
+         <property name="geometry">
+          <rect>
+           <x>-2</x>
+           <y>5</y>
+           <width>441</width>
+           <height>351</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btnCompra">
+         <property name="geometry">
+          <rect>
+           <x>490</x>
+           <y>140</y>
+           <width>171</width>
+           <height>121</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Comprar</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btnNoCompra">
+         <property name="geometry">
+          <rect>
+           <x>490</x>
+           <y>507</y>
+           <width>171</width>
+           <height>121</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>No Comprar</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btnLista">
+         <property name="geometry">
+          <rect>
+           <x>490</x>
+           <y>340</y>
+           <width>171</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Lista</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_19">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>360</y>
+           <width>441</width>
+           <height>341</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </widget>
       </widget>
       <widget class="QPushButton" name="btnConfirmarCRUD">
        <property name="geometry">

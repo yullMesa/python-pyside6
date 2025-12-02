@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ... otras importaciones ...
 from PySide6.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QTableWidgetItem,QLabel,QPushButton,QLabel,
-    QHBoxLayout,QVBoxLayout
+    QHBoxLayout,QVBoxLayout,QHeaderView,QTabWidget,QWidget
 )
 
 # 1. Importa la clase del diseño generado por Qt Designer para el Diálogo de Inicio
@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from PySide6.QtGui import QPixmap
 import json
 import time
+import random
 
 
 
@@ -284,8 +285,9 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             
             # 💥 LLAMADA CLAVE: Cargar la lista de vehículos al entrar a la vista
             
-            self.stackedWidget.setCurrentIndex(indice_de_pagina) 
-            self.btnConfirmarCRUD.setVisible(False) 
+            self.stackedWidget.setCurrentIndex(5) # Navega a la página 5
+            self.load_users_page() # Llama a la nueva función de carga
+            self.btnConfirmarCRUD.setVisible(False)
         
         else:
             # En el caso de "Usuarios" (índice 7) o "Visual", oculta y no conecta.
@@ -598,53 +600,61 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, "Error", "No se pudo actualizar el estado del vehículo.")
         
 
-    def mostrar_grafica_reparacion(self):
-        """Genera y muestra una gráfica de datos de reparación para el vehículo seleccionado."""
-        vin = self.Ingebuton_2.text().strip()
-        
+    def mostrar_grafica_reparacion(self,vin,contenedor):
+        """Genera y muestra una gráfica de datos de reparación para el VIN seleccionado
+       en el QWidget 'contenedor'.
+        """
         if not vin:
-            QMessageBox.warning(self, "Error", "Ingrese un ID de vehículo para ver la gráfica.")
             return
-            
-        # 1. Obtener datos de reparación
-        # (Necesitarás crear un método en db_manager.py, ej: db.obtener_datos_reparacion(vehiculo_id))
+        
+        # 1. Obtener datos de reparación (Asegúrate de que esta función exista en db_manager.py)
         datos_reparacion = self.db.obtener_datos_reparacion(vin)
         
         if not datos_reparacion:
-            QMessageBox.information(self, "Error", "No se encontraron datos de reparación para este vehículo.")
+            # Limpia el contenedor y muestra un mensaje
+            self.limpiar_layout(contenedor.layout())
+            no_data_label = QLabel(f"No se encontraron datos de reparación para el vehículo {vin}.")
+            contenedor.layout().addWidget(no_data_label)
             return
-        
-        frame_contenedor = self.frame
-        layout = frame_contenedor.layout()
 
-        # 2. Crear la gráfica (reutilizando tu método create_simple_chart)
-        # (Ajusta los datos y etiquetas según la estructura que devuelva tu DB)
-        datos = [d[1] for d in datos_reparacion] # Ejemplo: solo la columna de valor
-        labels = [d[0] for d in datos_reparacion] # Ejemplo: solo la columna de etiqueta
+        # 2. Preparar datos y etiquetas
+        # *¡CORRECCIÓN CLAVE para evitar IndexError y usar los datos correctos!*
+        # Asumimos que datos_reparacion es una lista de tuplas: [(label, value), ...]
+        try:
+            labels = [d[0] for d in datos_reparacion] 
+            datos = [d[1] for d in datos_reparacion] 
+        except IndexError:
+            print("Error: Los datos de reparación no tienen la estructura esperada (ej: [(label, value)]).")
+            return
+            
+        # 3. Limpiar y crear el widget de la gráfica
+        self.limpiar_layout(contenedor.layout())
+        contenedor.layout().addWidget(chart_canvas)
         
-        # 1. Crear el widget de la gráfica
+        
+        # Creamos el canvas de la gráfica
         chart_canvas = self.create_simple_chart(
             f"Historial de Reparación de {vin}",
             datos,
             labels
         )
         
+        # 4. Añadir el nuevo gráfico al contenedor limpio
+        contenedor.layout().addWidget(chart_canvas)
+        # --- TEMPORALMENTE en mostrar_grafica_reparacion ---
+        # datos_reparacion = self.db.obtener_datos_reparacion(vin) <-- COMENTA ESTO
+        datos_reparacion = [("Reciclarlo", 6000), ("Reparar", 2000), ("Que desea?", 1500)] # <-- Usa datos fijos
 
+    def limpiar_layout(self, layout):
+        """Función auxiliar para limpiar todos los widgets en un layout dado."""
         if layout is None:
-            # Si no tiene layout, lo creamos
-            layout = QVBoxLayout(frame_contenedor)
-            frame_contenedor.setLayout(layout)
-        else:
-            # Si ya tiene layout, limpiamos los widgets que pueda haber (la tabla de listado, por ejemplo)
-            while layout.count():
-                item = layout.takeAt(0)
-                widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
-        
-        # 4. Añadir el nuevo gráfico al frame limpio
-        layout.addWidget(chart_canvas)
-        frame_contenedor.repaint()
+            return
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget() is not None:
+                item.widget().deleteLater()
+            elif item.layout() is not None:
+                self.limpiar_layout(item.layout())
 
     def cargar_datos_vehiculo(self):
         """Consulta el estado del vehículo y actualiza los campos de Ingeniería."""
@@ -996,6 +1006,153 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         if self.indice_anuncio < len(self.vehiculos_marketing) - 1:
             self.indice_anuncio += 1
             self.actualizar_anuncio_marketing()
+
+    def load_users_page(self):
+        user_page = self.stackedWidget.widget(5)
+        layout = user_page.layout()
+        
+        # 1. Lógica para limpiar el layout si ya existe
+        if layout is None:
+            layout = QVBoxLayout(user_page)
+            user_page.setLayout(layout)
+        else:
+            # Lógica de limpieza similar a la de Marketing o Ingeniería
+            while layout.count():
+                item = layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+
+        # 2. Obtener la lista de usuarios (ej. de tu DB)
+        # self.lista_usuarios = self.db.obtener_todos_los_usuarios() 
+        
+        # 3. Crear el TableWidget para mostrar los usuarios (o la interfaz que necesites)
+        # Aquí iría el código para construir la tabla y añadir los botones de CRUD.
+
+        # 4. Actualizar la vista
+        # self.mostrar_tabla_usuarios()
+
+    def load_users_page(self):
+        # Asumimos que Usuarios es el widget de índice 5
+        users_page = self.stackedWidget.widget(5) 
+        layout = users_page.layout()
+        
+        # Lógica para limpiar el layout
+        if layout is None:
+            layout = QVBoxLayout(users_page)
+            users_page.setLayout(layout)
+        else:
+            while layout.count():
+                item = layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+        
+        # 1. CREACIÓN DE WIDGETS
+        
+        # Botones
+        self.btn_lista = QPushButton("Lista")
+        self.btn_lista.setObjectName("btnLista")
+        
+        self.btn_compra = QPushButton("Compra")
+        self.btn_compra.setObjectName("btnCompra")
+
+        self.btn_nocompra = QPushButton("No Compra")
+        self.btn_nocompra.setObjectName("btnNoCompra")
+        
+        # Labels para Imagen y Gráfica
+        self.label_car_image = QLabel("Seleccione un vehículo (Lista)")
+        self.label_car_image.setObjectName("label_car_image")
+        self.label_car_image.setAlignment(Qt.AlignCenter) # Importa Qt desde PySide6.QtCore
+        
+        # Contenedor para la Gráfica
+        # Este Widget servirá como contenedor donde se insertará el gráfico de Ingeniería
+        self.graph_container = QWidget() 
+        self.graph_container.setObjectName("label_graph_container")
+        self.graph_layout = QVBoxLayout(self.graph_container) # Creamos un layout dentro
+        
+        # 2. ORGANIZAR EN LAYOUTS
+        
+        # Layout de Botones
+        h_layout_buttons = QHBoxLayout()
+        h_layout_buttons.addWidget(self.btn_lista)
+        h_layout_buttons.addWidget(self.btn_compra)
+        h_layout_buttons.addWidget(self.btn_nocompra)
+        
+        # Layout Principal
+        layout.addLayout(h_layout_buttons)
+        layout.addWidget(self.label_car_image, 2) # Factor de estiramiento 2 (más espacio)
+        layout.addWidget(self.graph_container, 1) # Factor de estiramiento 1 (menos espacio que la imagen)
+        
+        # 3. CONEXIONES
+        self.btn_lista.clicked.connect(self.seleccionar_vehiculo_azar) 
+        # self.btn_compra.clicked.connect(lambda: self.manejar_usuario_feedback(1))
+        # self.btn_nocompra.clicked.connect(lambda: self.manejar_usuario_feedback(0))
+        
+        # Mostrar el primer estado
+        self.label_car_image.setText("Presione 'Lista' para seleccionar un vehículo.")
+        
+
+    def seleccionar_vehiculo_azar(self):
+        """
+        Selecciona un VIN al azar de la lista de vehículos, actualiza la imagen
+        y llama a la función de gráfica.
+        """
+        if not self.vehiculos_marketing:
+            self.label_car_image.setText("No hay vehículos disponibles para análisis.")
+            return
+
+        # 1. Seleccionar un vehículo al azar (que es una tupla: [VIN, Marca, Modelo])
+        vehiculo_seleccionado = random.choice(self.vehiculos_marketing)
+        vin_azar = vehiculo_seleccionado[0] # El VIN está en el índice 0
+        nombre_anuncio_imagen = f"imagen_{vin_azar}.png" # Asume que la imagen se llama VIN.png
+
+        # 2. Mostrar la imagen del vehículo seleccionado
+        ruta_completa = os.path.join(self.ruta_imagenes, nombre_anuncio_imagen)
+        self.mostrar_grafica_reparacion(vin_azar, contenedor=self.graph_container)
+        
+        
+        try:
+            pixmap = QPixmap(ruta_completa)
+            if pixmap.isNull():
+                raise FileNotFoundError()
+                
+            self.label_car_image.setPixmap(
+                pixmap.scaled(
+                    600, 
+                    400, 
+                    Qt.KeepAspectRatio, 
+                    Qt.SmoothTransformation
+                )
+            )
+            self.label_car_image.setText(f"Mostrando análisis para VIN: {vin_azar}")
+            
+        except FileNotFoundError:
+            self.label_car_image.setText(f"Error: Imagen no encontrada para VIN {vin_azar}. ({ruta_completa})")
+        except Exception as e:
+            self.label_car_image.setText(f"Error al cargar imagen: {e}")
+
+        # 3. Llamar a la función de la gráfica con el VIN seleccionado
+        self.mostrar_grafica_reparacion(vin_azar, contenedor=self.graph_container)
+
+            # 1. Seleccionar un vehículo al azar (que es una tupla: [VIN, Marca, Modelo])
+        vehiculo_seleccionado = random.choice(self.vehiculos_marketing)
+        vin_azar = vehiculo_seleccionado[0] # El VIN está en el índice 0
+        nombre_anuncio_imagen = f"{vin_azar}.png" # El nombre del archivo debe ser solo el VIN, no "imagen_VIN.png"
+
+        # 2. Mostrar la imagen del vehículo seleccionado
+        # ¡CRÍTICO! Usar os.path.join con la ruta base definida en __init__
+        ruta_completa = os.path.join(self.ruta_imagenes, nombre_anuncio_imagen) 
+        
+        try:
+            pixmap = QPixmap(ruta_completa)
+            if pixmap.isNull():
+                # Si pixmap es nulo, significa que la ruta es INCORRECTA o la imagen no existe.
+                # Puedes levantar un error para depuración.
+                raise FileNotFoundError(f"Ruta intentada: {ruta_completa}") 
+                
+            # ... (resto del código de setPixmap) ...
+            
+        except FileNotFoundError as e:
+            self.label_car_image.setText(f"Error: Imagen no encontrada. {e}")
 
 
     def create_simple_chart(self, title, data, labels):

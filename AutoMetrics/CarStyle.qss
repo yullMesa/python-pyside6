@@ -377,3 +377,59 @@ QTableWidget::item:selected {
     /* Asegura que la imagen se mantenga en el centro */
     border-image-repeat: AlignCenter;
 }
+
+
+/* --- ESTILOS ESPECÍFICOS PARA LA PÁGINA DE USUARIOS (#page_5 o #page_6/7) --- */
+
+/* Estilo Base para los botones en la sección de Usuarios/Lista */
+#btnLista, #btnCompra, #btnNoCompra {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #FFFFFF;
+    border: 1px solid transparent;
+}
+
+/* 1. Botón LISTA (Azul - Acción principal) */
+#btnLista {
+    background-color: #337ab7; /* Azul base */
+    border-color: #2e6da4;
+}
+#btnLista:hover {
+    background-color: #286090; /* Azul más oscuro */
+}
+#btnLista:pressed {
+    background-color: #1a496b;
+}
+
+/* 2. Botón COMPRA (Verde - Éxito/Positivo) */
+#btnCompra {
+    background-color: #5cb85c; /* Verde base */
+    border-color: #4cae4c;
+}
+#btnCompra:hover {
+    background-color: #4cae4c;
+}
+#btnCompra:pressed {
+    background-color: #398439;
+}
+
+/* 3. Botón NO COMPRA (Rojo - Peligro/Negativo) */
+#btnNoCompra {
+    background-color: #d9534f; /* Rojo base */
+    border-color: #d43f3a;
+}
+#btnNoCompra:hover {
+    background-color: #c9302c;
+}
+#btnNoCompra:pressed {
+    background-color: #a42622;
+}
+
+/* Estilo para los contenedores de Label */
+#label_car_image, #label_graph_container {
+    border: 1px solid #4a4e5c; /* Borde sutil */
+    background-color: #1e1f24; /* Fondo oscuro */
+    padding: 5px;
+}
