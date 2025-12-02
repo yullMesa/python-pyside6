@@ -396,6 +396,13 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
                 except Exception as e:
                     print(f"[WARN] No se pudo cargar la página de Marketing en configurar_dashboard_por_rol: {e}")
             
+            # Si la vista inicial es Usuarios (Cliente), cargar la página
+            elif rol == "Cliente":
+                try:
+                    self.load_users_page()
+                except Exception as e:
+                    print(f"[WARN] No se pudo cargar la página de Usuarios en configurar_dashboard_por_rol: {e}")
+            
             # Seleccionar el primer botón del rol (para que aparezca resaltado)
             if botones_permitidos:
                 botones_permitidos[0].setChecked(True)
@@ -1023,13 +1030,20 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         if self.label_19.layout() is None:
             self.label_19.setLayout(QVBoxLayout())
 
-        # Conectar botones
+        # Hacer visibles los botones
         if self.btnLista:
+            self.btnLista.setVisible(True)
             try:
                 self.btnLista.clicked.disconnect()
             except Exception:
                 pass
             self.btnLista.clicked.connect(self.seleccionar_vehiculo_azar)
+        
+        if self.btnCompra:
+            self.btnCompra.setVisible(True)
+        
+        if self.btnNoCompra:
+            self.btnNoCompra.setVisible(True)
 
         # Cargar tabla de vehículos
         try:
@@ -1333,14 +1347,3 @@ if __name__ == "__main__":
         
         # Esto retorna una lista de tuplas: [('admin', 1), ('logistica', 2), ...]
         return self.execute_read_query(query) # Asume que tienes un método para leer consultas
-
-
-
-# ⭐️ 1. Inicializar la Base de Datos ⭐️
-DB = DatabaseManager()
-
-# ... (El resto del código de lanzamiento de la ventana)
-# En la línea 138 (o similar) al lanzar el dashboard:
-main_app = MainDashboard(rol_seleccionado, db_instance=DB)
-main_app.show()
-app.exec()
