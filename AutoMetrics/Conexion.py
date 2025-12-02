@@ -1008,152 +1008,161 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.actualizar_anuncio_marketing()
 
     def load_users_page(self):
-        user_page = self.stackedWidget.widget(5)
-        layout = user_page.layout()
-        
-        # 1. Lógica para limpiar el layout si ya existe
-        if layout is None:
-            layout = QVBoxLayout(user_page)
-            user_page.setLayout(layout)
-        else:
-            # Lógica de limpieza similar a la de Marketing o Ingeniería
-            while layout.count():
-                item = layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
+        """Carga la página de Usuarios.
+        - label_18 (arriba): muestra imagen del carro por VIN
+        - label_19 (abajo): muestra gráfica de ingeniería
+        - btnLista: selecciona VIN aleatorio y actualiza ambos
+        - Tabla: al hacer clic en fila, actualiza imagen + gráfica del VIN
+        """
+        users_page = self.stackedWidget.widget(5)
+        if users_page is None:
+            return
 
-        # 2. Obtener la lista de usuarios (ej. de tu DB)
-        # self.lista_usuarios = self.db.obtener_todos_los_usuarios() 
-        
-        # 3. Crear el TableWidget para mostrar los usuarios (o la interfaz que necesites)
-        # Aquí iría el código para construir la tabla y añadir los botones de CRUD.
+        # Obtener referencias a los widgets de Designer
+        self.label_18 = users_page.findChild(QLabel, 'label_18')
+        self.label_19 = users_page.findChild(QLabel, 'label_19')
+        self.btnLista = users_page.findChild(QPushButton, 'btnLista')
+        self.btnCompra = users_page.findChild(QPushButton, 'btnCompra')
+        self.btnNoCompra = users_page.findChild(QPushButton, 'btnNoCompra')
 
-        # 4. Actualizar la vista
-        # self.mostrar_tabla_usuarios()
+        if self.label_18 is None or self.label_19 is None:
+            print("[WARN] No se encontraron label_18 o label_19 en page_7")
+            return
 
-    def load_users_page(self):
-        # Asumimos que Usuarios es el widget de índice 5
-        users_page = self.stackedWidget.widget(5) 
-        layout = users_page.layout()
-        
-        # Lógica para limpiar el layout
-        if layout is None:
-            layout = QVBoxLayout(users_page)
-            users_page.setLayout(layout)
-        else:
-            while layout.count():
-                item = layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-        
-        # 1. CREACIÓN DE WIDGETS
-        
-        # Botones
-        self.btn_lista = QPushButton("Lista")
-        self.btn_lista.setObjectName("btnLista")
-        
-        self.btn_compra = QPushButton("Compra")
-        self.btn_compra.setObjectName("btnCompra")
+        # Inicializar labels
+        self.label_18.setText("Selecciona un vehículo")
+        self.label_18.setAlignment(Qt.AlignCenter)
+        self.label_19.setText("Gráfica aquí")
+        self.label_19.setAlignment(Qt.AlignCenter)
 
-        self.btn_nocompra = QPushButton("No Compra")
-        self.btn_nocompra.setObjectName("btnNoCompra")
+        # Crear layout en label_19 si no existe (para la gráfica)
+        if self.label_19.layout() is None:
+            self.label_19.setLayout(QVBoxLayout())
+
+        # Conectar botones
+        if self.btnLista:
+            try:
+                self.btnLista.clicked.disconnect()
+            except Exception:
+                pass
+            self.btnLista.clicked.connect(self.seleccionar_vehiculo_azar)
+
+        # Cargar tabla de vehículos
+        try:
+            vehiculos = self.db.obtener_lista_vehiculos()
+            self.vehiculos_users = vehiculos  # Guardar para acceso posterior
+        except Exception as e:
+            print(f"[ERROR] No se pudo obtener lista de vehículos: {e}")
+            self.vehiculos_users = []
+            return
+
+        if vehiculos:
+            # Mostrar el primer vehículo por defecto
+            self._mostrar_vehiculo_users(vehiculos[0][0])
+            
+            # Crear tabla de vehículos
+            table_widget = QTableWidget()
+            table_widget.setColumnCount(3)
+            table_widget.setHorizontalHeaderLabels(['VIN', 'Marca', 'Modelo'])
+            table_widget.setRowCount(len(vehiculos))
+            
+            for fila, veh in enumerate(vehiculos):
+                vin, marca, modelo = veh
+                table_widget.setItem(fila, 0, QTableWidgetItem(vin))
+                table_widget.setItem(fila, 1, QTableWidgetItem(marca))
+                table_widget.setItem(fila, 2, QTableWidgetItem(modelo))
+            
+            # Conectar clic de tabla
+            table_widget.cellClicked.connect(self.seleccionar_vehiculo_tabla_users)
+            
+            # Guardar referencia a la tabla
+            self.table_users = table_widget
+            
+            # La tabla se debe añadir al layout de page_7 si existe espacio
+            # Por ahora solo se conecta el evento
+
+    def seleccionar_vehiculo_tabla_users(self, fila, columna):
+        """Se ejecuta al hacer clic en una fila de la tabla de usuarios."""
+        if not hasattr(self, 'table_users'):
+            return
         
-        # Labels para Imagen y Gráfica
-        self.label_car_image = QLabel("Seleccione un vehículo (Lista)")
-        self.label_car_image.setObjectName("label_car_image")
-        self.label_car_image.setAlignment(Qt.AlignCenter) # Importa Qt desde PySide6.QtCore
-        
-        # Contenedor para la Gráfica
-        # Este Widget servirá como contenedor donde se insertará el gráfico de Ingeniería
-        self.graph_container = QWidget() 
-        self.graph_container.setObjectName("label_graph_container")
-        self.graph_layout = QVBoxLayout(self.graph_container) # Creamos un layout dentro
-        
-        # 2. ORGANIZAR EN LAYOUTS
-        
-        # Layout de Botones
-        h_layout_buttons = QHBoxLayout()
-        h_layout_buttons.addWidget(self.btn_lista)
-        h_layout_buttons.addWidget(self.btn_compra)
-        h_layout_buttons.addWidget(self.btn_nocompra)
-        
-        # Layout Principal
-        layout.addLayout(h_layout_buttons)
-        layout.addWidget(self.label_car_image, 2) # Factor de estiramiento 2 (más espacio)
-        layout.addWidget(self.graph_container, 1) # Factor de estiramiento 1 (menos espacio que la imagen)
-        
-        # 3. CONEXIONES
-        self.btn_lista.clicked.connect(self.seleccionar_vehiculo_azar) 
-        # self.btn_compra.clicked.connect(lambda: self.manejar_usuario_feedback(1))
-        # self.btn_nocompra.clicked.connect(lambda: self.manejar_usuario_feedback(0))
-        
-        # Mostrar el primer estado
-        self.label_car_image.setText("Presione 'Lista' para seleccionar un vehículo.")
+        vin_item = self.table_users.item(fila, 0)
+        if vin_item:
+            vin = vin_item.text()
+            self._mostrar_vehiculo_users(vin)
         
 
     def seleccionar_vehiculo_azar(self):
-        """
-        Selecciona un VIN al azar de la lista de vehículos, actualiza la imagen
-        y llama a la función de gráfica.
-        """
-        if not self.vehiculos_marketing:
-            self.label_car_image.setText("No hay vehículos disponibles para análisis.")
+        """Selecciona un VIN aleatorio y actualiza imagen + gráfica."""
+        if not hasattr(self, 'vehiculos_users') or not self.vehiculos_users:
+            if hasattr(self, 'label_18') and self.label_18:
+                self.label_18.setText("No hay vehículos disponibles.")
             return
 
-        # 1. Seleccionar un vehículo al azar (que es una tupla: [VIN, Marca, Modelo])
-        vehiculo_seleccionado = random.choice(self.vehiculos_marketing)
-        vin_azar = vehiculo_seleccionado[0] # El VIN está en el índice 0
-        nombre_anuncio_imagen = f"imagen_{vin_azar}.png" # Asume que la imagen se llama VIN.png
+        vehiculo_azar = random.choice(self.vehiculos_users)
+        vin_azar = vehiculo_azar[0]
+        self._mostrar_vehiculo_users(vin_azar)
 
-        # 2. Mostrar la imagen del vehículo seleccionado
-        ruta_completa = os.path.join(self.ruta_imagenes, nombre_anuncio_imagen)
-        self.mostrar_grafica_reparacion(vin_azar, contenedor=self.graph_container)
-        
-        
+    def _mostrar_vehiculo_users(self, vin):
+        """Muestra imagen y gráfica para un VIN específico en los labels de Users."""
+        if not vin:
+            return
+
+        # Mostrar imagen en label_18 (arriba)
+        if hasattr(self, 'label_18') and self.label_18:
+            ruta_imagen = os.path.join(self.ruta_imagenes, f"{vin}.png")
+            try:
+                pixmap = QPixmap(ruta_imagen)
+                if pixmap.isNull():
+                    self.label_18.setText(f"Imagen no encontrada: {vin}.png")
+                else:
+                    self.label_18.setPixmap(pixmap.scaled(400, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                    self.label_18.setAlignment(Qt.AlignCenter)
+            except Exception as e:
+                self.label_18.setText(f"Error: {e}")
+
+        # Mostrar gráfica en label_19 (abajo)
+        if hasattr(self, 'label_19') and self.label_19:
+            self._mostrar_grafica_en_label(vin, self.label_19)
+
+    def _mostrar_grafica_en_label(self, vin, label_widget):
+        """Muestra la gráfica de ingeniería en un QLabel usando su layout."""
+        if label_widget.layout() is None:
+            label_widget.setLayout(QVBoxLayout())
+
+        # Limpiar widgets previos
+        layout = label_widget.layout()
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # Obtener datos de reparación
         try:
-            pixmap = QPixmap(ruta_completa)
-            if pixmap.isNull():
-                raise FileNotFoundError()
-                
-            self.label_car_image.setPixmap(
-                pixmap.scaled(
-                    600, 
-                    400, 
-                    Qt.KeepAspectRatio, 
-                    Qt.SmoothTransformation
-                )
-            )
-            self.label_car_image.setText(f"Mostrando análisis para VIN: {vin_azar}")
-            
-        except FileNotFoundError:
-            self.label_car_image.setText(f"Error: Imagen no encontrada para VIN {vin_azar}. ({ruta_completa})")
+            datos_reparacion = self.db.obtener_datos_reparacion(vin)
         except Exception as e:
-            self.label_car_image.setText(f"Error al cargar imagen: {e}")
+            print(f"[ERROR] No se pudo obtener datos de reparación para {vin}: {e}")
+            layout.addWidget(QLabel(f"Error: {e}"))
+            return
 
-        # 3. Llamar a la función de la gráfica con el VIN seleccionado
-        self.mostrar_grafica_reparacion(vin_azar, contenedor=self.graph_container)
+        if not datos_reparacion:
+            layout.addWidget(QLabel(f"Sin datos de reparación para VIN {vin}"))
+            return
 
-            # 1. Seleccionar un vehículo al azar (que es una tupla: [VIN, Marca, Modelo])
-        vehiculo_seleccionado = random.choice(self.vehiculos_marketing)
-        vin_azar = vehiculo_seleccionado[0] # El VIN está en el índice 0
-        nombre_anuncio_imagen = f"{vin_azar}.png" # El nombre del archivo debe ser solo el VIN, no "imagen_VIN.png"
-
-        # 2. Mostrar la imagen del vehículo seleccionado
-        # ¡CRÍTICO! Usar os.path.join con la ruta base definida en __init__
-        ruta_completa = os.path.join(self.ruta_imagenes, nombre_anuncio_imagen) 
-        
+        # Preparar datos y crear gráfica
         try:
-            pixmap = QPixmap(ruta_completa)
-            if pixmap.isNull():
-                # Si pixmap es nulo, significa que la ruta es INCORRECTA o la imagen no existe.
-                # Puedes levantar un error para depuración.
-                raise FileNotFoundError(f"Ruta intentada: {ruta_completa}") 
-                
-            # ... (resto del código de setPixmap) ...
-            
-        except FileNotFoundError as e:
-            self.label_car_image.setText(f"Error: Imagen no encontrada. {e}")
+            labels = [d[0] for d in datos_reparacion]
+            datos = [d[1] for d in datos_reparacion]
+        except Exception as e:
+            layout.addWidget(QLabel(f"Error procesando datos: {e}"))
+            return
 
+        chart_canvas = self.create_simple_chart(
+            f"Ingeniería: VIN {vin}",
+            datos,
+            labels
+        )
+        layout.addWidget(chart_canvas)
 
     def create_simple_chart(self, title, data, labels):
         """Crea una gráfica de barras simple y devuelve el widget Canvas."""
