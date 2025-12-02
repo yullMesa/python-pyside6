@@ -228,5 +228,36 @@ class DatabaseManager:
         data = (vin, nombre_anuncio, gusto)
         return self.execute_query(query, data)
 
+    def eliminar_vehiculo(self, vin):
+        """Elimina un vehículo de la base de datos (de todas las tablas relevantes)."""
+        try:
+            cursor = self.connection.cursor()
+            
+            # Primero, borrar registros relacionados de otras tablas
+            # (respetando restricciones de clave foránea)
+            tablas_con_vin = [
+                "Registros_Ingenieria",
+                "feedback",
+                "Historial_Mantenimiento"
+            ]
+            
+            for tabla in tablas_con_vin:
+                query_delete = f"DELETE FROM {tabla} WHERE vin_serial_no = %s"
+                cursor.execute(query_delete, (vin,))
+            
+            # Finalmente, borrar el vehículo de la tabla Vehiculos
+            query_delete_vehiculo = "DELETE FROM Vehiculos WHERE vin_serial_no = %s"
+            cursor.execute(query_delete_vehiculo, (vin,))
+            
+            self.connection.commit()
+            print(f"[DB] Vehículo {vin} eliminado correctamente de todas las tablas")
+            return True
+        except Exception as e:
+            print(f"[ERROR DB] Error al eliminar vehículo {vin}: {e}")
+            self.connection.rollback()
+            return False
+        finally:
+            cursor.close()
+
     
     

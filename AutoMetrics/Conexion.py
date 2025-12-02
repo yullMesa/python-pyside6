@@ -1030,7 +1030,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         if self.label_19.layout() is None:
             self.label_19.setLayout(QVBoxLayout())
 
-        # Hacer visibles los botones
+        # Hacer visibles los botones y conectar sus funciones
         if self.btnLista:
             self.btnLista.setVisible(True)
             try:
@@ -1041,9 +1041,19 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         
         if self.btnCompra:
             self.btnCompra.setVisible(True)
+            try:
+                self.btnCompra.clicked.disconnect()
+            except Exception:
+                pass
+            self.btnCompra.clicked.connect(self.manejar_compra_vehiculo)
         
         if self.btnNoCompra:
             self.btnNoCompra.setVisible(True)
+            try:
+                self.btnNoCompra.clicked.disconnect()
+            except Exception:
+                pass
+            self.btnNoCompra.clicked.connect(self.seleccionar_vehiculo_azar)
 
         # Cargar tabla de vehículos
         try:
@@ -1105,6 +1115,9 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         """Muestra imagen y gráfica para un VIN específico en los labels de Users."""
         if not vin:
             return
+        
+        # Guardar el VIN actual para referencia posterior (ej: compra/no compra)
+        self.vin_actual_users = vin
 
         # Mostrar imagen en label_18 (arriba)
         if hasattr(self, 'label_18') and self.label_18:
@@ -1167,8 +1180,8 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         
         fig, ax = plt.subplots(figsize=(5, 4))
         
-        # Crea el gráfico de barras (o el tipo que prefieras)
-        ax.bar(labels, data, color='#6a6adc') 
+        # Crea el gráfico de barras
+        bars = ax.bar(range(len(labels)), data, color='#6a6adc')
         
         # Configuración de los ejes y título
         ax.set_title(title, color='white')
@@ -1180,6 +1193,11 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         fig.patch.set_facecolor('#2e303f')
         ax.tick_params(axis='x', colors='white')
         ax.tick_params(axis='y', colors='white')
+        
+        # Espaciar mejor los labels del eje X (rotarlos y ajustar layout)
+        ax.set_xticks(range(len(labels)))
+        ax.set_xticklabels(labels, rotation=45, ha='right')
+        fig.tight_layout()  # Ajustar automáticamente para que no se corten
         
         # Crear el Canvas de Qt (el widget)
         canvas = FigureCanvas(fig)
@@ -1233,6 +1251,41 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         # Agrega la lógica para otras vistas si usan el botón Confirmar.
         
 
+    def manejar_compra_vehiculo(self):
+        """Maneja la compra: borra el VIN actual de todas las tablas de MySQL."""
+        if not hasattr(self, 'vehiculos_users') or not self.vehiculos_users:
+            if hasattr(self, 'label_18') and self.label_18:
+                self.label_18.setText("No hay vehículo seleccionado")
+            return
+        
+        # Obtener el VIN actual
+        if not hasattr(self, 'vin_actual_users'):
+            if hasattr(self, 'label_18') and self.label_18:
+                self.label_18.setText("Error: No se pudo identificar el VIN")
+            return
+        
+        current_vin = self.vin_actual_users
+        
+        try:
+            # Borrar el VIN de todas las tablas relevantes
+            self.db.eliminar_vehiculo(current_vin)
+            print(f"[SUCCESS] Vehículo {current_vin} borrado de la base de datos")
+            
+            # Actualizar lista de vehículos
+            self.vehiculos_users = self.db.obtener_lista_vehiculos()
+            
+            # Mostrar siguiente vehículo
+            if self.vehiculos_users:
+                self.seleccionar_vehiculo_azar()
+            else:
+                if hasattr(self, 'label_18') and self.label_18:
+                    self.label_18.setText("No hay más vehículos disponibles")
+                if hasattr(self, 'label_19') and self.label_19:
+                    self.label_19.setText("No hay más vehículos")
+        except Exception as e:
+            print(f"[ERROR] Error al borrar vehículo {current_vin}: {e}")
+            if hasattr(self, 'label_18') and self.label_18:
+                self.label_18.setText(f"Error: {e}")
 
     def desconectar_btn_confirmar(self):
         """Desconecta todas las señales previas del botón Confirmar."""
@@ -1339,11 +1392,3 @@ if __name__ == "__main__":
         # Si el usuario canceló el diálogo (rol_seleccionado es None), 
         # cerramos la aplicación inmediatamente.
         sys.exit(0)
-
-    def get_distribucion_empleados(self):
-        """Obtiene el conteo de empleados por cargo."""
-        # Nota: Usamos 'cargo' basado en la columna visible en MySQL
-        query = "SELECT cargo, COUNT(*) FROM Empleados GROUP BY cargo"
-        
-        # Esto retorna una lista de tuplas: [('admin', 1), ('logistica', 2), ...]
-        return self.execute_read_query(query) # Asume que tienes un método para leer consultas
