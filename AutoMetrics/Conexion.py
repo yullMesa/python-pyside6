@@ -138,32 +138,60 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         if layout is None:
             layout = QVBoxLayout(visual_page)
             
-        # 2. Generar y Añadir el Gráfico según el Rol
-        if rol == "Administrador":
+        # 2. Generar el gráfico según el rol (normalizando nombres)
+        chart_canvas = None
+        r = (rol or "").lower()
+
+        if "admin" in r or "administr" in r:
             title = "Administrador: Distribución de Empleados por Género"
             chart_canvas = self.create_simple_chart(title, [10, 20], ['Hombres', 'Mujeres'])
-            layout.addWidget(chart_canvas)
-            
-        elif rol == "Logistica":
+
+        elif "logist" in r or "logi" in r:
             title = "Logística: Estado Actual de la Flota (Activo vs. Mantenimiento)"
             chart_canvas = self.create_simple_chart(title, [80, 20], ['Activos', 'Mantenimiento'])
-            layout.addWidget(chart_canvas)
 
-        # Agrega tu gráfico de Ingeniería aquí, por ejemplo:
-        elif rol == "Ingenieria":
-            # Nota: Aquí deberías llamar a una función DB que obtenga datos generales
-            # o usar datos fijos como ejemplo.
-            title = "Ingeniería: Tiempos de Reparación Promedio"
-            chart_canvas = self.create_simple_chart(title, [5, 3, 1], ['Reparación', 'Mantenimiento', 'Reciclaje'])
-            
+        elif "ingen" in r:
+            # Gráfica de Ingeniería: obtener datos reales desde la DB si existen
+            try:
+                datos = []
+                etiquetas = []
+                # Intentar obtener datos agregados desde DB (si existe método)
+                try:
+                    filas = self.db.obtener_estadisticas_ingenieria()  # opcional
+                except Exception:
+                    filas = None
+
+                if filas:
+                    for nombre, valor in filas:
+                        etiquetas.append(nombre)
+                        datos.append(valor)
+                else:
+                    # Datos de ejemplo si no hay método
+                    etiquetas = ['Reparación', 'Mantenimiento', 'Reciclaje']
+                    datos = [5, 3, 1]
+
+                title = "Ingeniería: Tiempos de Reparación Promedio"
+                chart_canvas = self.create_simple_chart(title, datos, etiquetas)
+            except Exception as e:
+                print(f"[WARN] No se pudo obtener datos de Ingeniería: {e}")
+
         else:
-            # Manejo de roles sin gráfica específica
+            # Rol sin gráfica específica
             return
-            
-        frame_contenedor = self.frameGraficos 
-        layout = frame_contenedor.layout() 
-        # ...
-        layout.addWidget(chart_canvas) # El QVBoxLayout inserta el gráfico aquí
+
+        # 3. Añadir el canvas al contenedor de gráficos (una sola vez)
+        if chart_canvas is not None:
+            # Preferimos usar un contenedor dedicado si existe
+            frame_contenedor = getattr(self, 'frameGraficos', None)
+            if frame_contenedor is None:
+                # Fallback: usar la página visual
+                target_layout = layout
+            else:
+                if frame_contenedor.layout() is None:
+                    frame_contenedor.setLayout(QVBoxLayout(frame_contenedor))
+                target_layout = frame_contenedor.layout()
+
+            target_layout.addWidget(chart_canvas)
 
 
     def create_simple_chart(self, title, data, labels):
@@ -402,6 +430,20 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
                     self.load_users_page()
                 except Exception as e:
                     print(f"[WARN] No se pudo cargar la página de Usuarios en configurar_dashboard_por_rol: {e}")
+
+            # Si el rol es Ingeniería, asegurarnos de cargar la vista y los gráficos
+            elif "ingen" in rol.lower():
+                try:
+                    # Cargar listado de vehículos para Ingeniería (si aplica)
+                    self.cargar_listado_vehiculos()
+                except Exception as e:
+                    print(f"[WARN] No se pudo cargar el listado de vehículos para Ingeniería: {e}")
+                try:
+                    # Llamar a la función que genera los gráficos de la vista Visual/Ingeniería
+                    # Normalizamos el rol al pasarla para que load_visual_analytics la interprete.
+                    self.load_visual_analytics(self.rol_seleccionado)
+                except Exception as e:
+                    print(f"[WARN] No se pudo cargar los gráficos de Ingeniería en configurar_dashboard_por_rol: {e}")
             
             # Seleccionar el primer botón del rol (para que aparezca resaltado)
             if botones_permitidos:
