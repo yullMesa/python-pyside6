@@ -4,8 +4,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ... otras importaciones ...
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QMainWindow, QMessageBox,QVBoxLayout,QTableWidget,QTableWidgetItem,QLabel,QPushButton,QLabel,
-    QHBoxLayout,QVBoxLayout,QHeaderView,QTabWidget,QWidget
+    QApplication, QDialog, QMainWindow, QMessageBox, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel, QPushButton, QLabel,
+    QHBoxLayout, QVBoxLayout, QHeaderView, QTabWidget, QWidget, QFrame
 )
 
 # 1. Importa la clase del diseño generado por Qt Designer para el Diálogo de Inicio
@@ -74,7 +74,33 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         self.configurar_dashboard_por_rol(self.rol_seleccionado)
 
         self.rol = rol_seleccionado
-        self.Ingebuton_6.clicked.connect(self.mostrar_grafica_reparacion)
+
+
+
+        try:
+            self.Ingebuton_6.clicked.disconnect()
+        except Exception:
+            pass
+        self.Ingebuton_6.clicked.connect(self.graficar_ingenieria_vin)
+
+
+
+
+    def graficar_ingenieria_vin(self):
+        """Slot para el botón de graficar en Ingeniería: toma el VIN de Ingebuton_2 (ID del vehículo) y muestra la gráfica en el área fija."""
+        vin = self.Ingebuton_2.text().strip()
+        # Usar el QFrame llamado 'frame' como contenedor de la gráfica
+        contenedor = getattr(self, 'frame', None)
+        if contenedor is None:
+            # Busca por nombre en la página de ingeniería si no está como atributo
+            page = self.stackedWidget.widget(3)  # Índice 3: Ingeniería
+            contenedor = page.findChild(QFrame, 'frame')
+            if contenedor is not None:
+                self.frame = contenedor
+        if contenedor is None:
+            print("[ERROR] No se encontró el QFrame llamado 'frame' para la gráfica de Ingeniería. Asegúrate de tener un QFrame llamado 'frame' en Qt Designer.")
+            return
+        self.mostrar_grafica_reparacion(vin, contenedor)
         self.Ingeline.editingFinished.connect(self.cargar_datos_vehiculo)
 
         # Conectar el botón de la vista de Empleados a la función de manejo
@@ -104,94 +130,82 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.cargar_listado_vehiculos()
             self.btnConfirmarCRUD.setVisible(True)
         
+        elif indice_de_pagina == 2:  # Visual (Gráficos)
+            self.inicializar_vista_visual()
+            self.btnConfirmarCRUD.setVisible(False)
+
         elif indice_de_pagina == 5: # Usuarios (No debería tener la misma visual de Ingeniería)
             # Aquí no haces nada, o conectas la función de CRUD de Usuarios
             
             self.btnConfirmarCRUD.setVisible(False) # Ocultarlo si no lo usas en esta vista
             
-        else:
-            # Para todas las demás vistas (Visual, Marketing, etc.)
-            self.btnConfirmarCRUD.setVisible(False)
-        
-        if button.objectName() == "btnVehicles":
 
-            self.stackedWidget.setCurrentIndex(3)
-                # ⭐️ LLAMAR A LA FUNCIÓN DINÁMICA DE GRÁFICOS
-            self.load_visual_analytics(self.rol_seleccionado) # Usamos el rol guardado
+        # --- MÉTODO DE CLASE, NO ANIDADO ---
+            def graficar_ingenieria_vin(self):
+                """Slot para el botón de graficar en Ingeniería: toma el VIN de Ingeline y muestra la gráfica en el área fija."""
+                vin = self.Ingeline.text().strip()
+                # Busca el QLabel de la página de Ingeniería para mostrar la gráfica
+                # Asumimos que hay un QLabel llamado self.label_ingenieria_grafica (ajusta el nombre si es necesario)
+                label = getattr(self, 'label_ingenieria_grafica', None)
+                if label is None:
+                    # Busca por nombre en la página de ingeniería si no está como atributo
+                    page = self.stackedWidget.widget(3)  # Índice 3: Ingeniería
+                    label = page.findChild(QLabel, 'label_ingenieria_grafica')
+                    if label is not None:
+                        self.label_ingenieria_grafica = label
+                if label is None:
+                    print("[ERROR] No se encontró el QLabel para la gráfica de Ingeniería. Asegúrate de tener un QLabel llamado 'label_ingenieria_grafica' en Qt Designer.")
+                    return
+                self._mostrar_grafica_en_label(vin, label)
 
     def load_visual_analytics(self, rol):
-        # 1. Limpiar el contenido anterior (CRUCIAL)
-        # Debes encontrar el QWidget específico de la vista 'Visual'
-        # Si la página Visual es self.stackedWidget.widget(3), entonces:
-        visual_page = self.stackedWidget.widget(3)
-        
-        # Busca el Layout (el QVBoxLayout que creaste en Designer)
-        layout = visual_page.layout()
-        if layout is not None:
-            # Elimina widgets existentes para reemplazarlos con el nuevo gráfico
-            while layout.count():
-                item = layout.takeAt(0)
-                if item.widget() is not None:
-                    item.widget().deleteLater()
-                
-        # Si no tiene layout, lo creamos (para el ejemplo, lo crearemos si no existe)
-        if layout is None:
-            layout = QVBoxLayout(visual_page)
-            
-        # 2. Generar el gráfico según el rol (normalizando nombres)
-        chart_canvas = None
+        """Carga la gráfica correspondiente en la página Visual según el rol."""
+        visual_page_widget = self.stackedWidget.widget(2)  # Índice 2: Visual
+        if visual_page_widget is None:
+            print("Error: El índice 2 del QStackedWidget está vacío. Asegúrate de tener un QWidget en esa posición.")
+            return
+        # Asegura que el layout existe
+        if visual_page_widget.layout() is None:
+            layout = QVBoxLayout(visual_page_widget)
+            visual_page_widget.setLayout(layout)
+        layout = visual_page_widget.layout()
+        # Limpia widgets previos
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        # Determina la gráfica según el rol
         r = (rol or "").lower()
-
+        chart_canvas = None
         if "admin" in r or "administr" in r:
             title = "Administrador: Distribución de Empleados por Género"
             chart_canvas = self.create_simple_chart(title, [10, 20], ['Hombres', 'Mujeres'])
-
         elif "logist" in r or "logi" in r:
             title = "Logística: Estado Actual de la Flota (Activo vs. Mantenimiento)"
             chart_canvas = self.create_simple_chart(title, [80, 20], ['Activos', 'Mantenimiento'])
-
         elif "ingen" in r:
-            # Gráfica de Ingeniería: obtener datos reales desde la DB si existen
             try:
                 datos = []
                 etiquetas = []
-                # Intentar obtener datos agregados desde DB (si existe método)
                 try:
-                    filas = self.db.obtener_estadisticas_ingenieria()  # opcional
+                    filas = self.db.obtener_estadisticas_ingenieria()
                 except Exception:
                     filas = None
-
                 if filas:
                     for nombre, valor in filas:
                         etiquetas.append(nombre)
                         datos.append(valor)
                 else:
-                    # Datos de ejemplo si no hay método
                     etiquetas = ['Reparación', 'Mantenimiento', 'Reciclaje']
                     datos = [5, 3, 1]
-
                 title = "Ingeniería: Tiempos de Reparación Promedio"
                 chart_canvas = self.create_simple_chart(title, datos, etiquetas)
             except Exception as e:
                 print(f"[WARN] No se pudo obtener datos de Ingeniería: {e}")
-
         else:
-            # Rol sin gráfica específica
             return
-
-        # 3. Añadir el canvas al contenedor de gráficos (una sola vez)
         if chart_canvas is not None:
-            # Preferimos usar un contenedor dedicado si existe
-            frame_contenedor = getattr(self, 'frameGraficos', None)
-            if frame_contenedor is None:
-                # Fallback: usar la página visual
-                target_layout = layout
-            else:
-                if frame_contenedor.layout() is None:
-                    frame_contenedor.setLayout(QVBoxLayout(frame_contenedor))
-                target_layout = frame_contenedor.layout()
-
-            target_layout.addWidget(chart_canvas)
+            layout.addWidget(chart_canvas)
 
 
     def create_simple_chart(self, title, data, labels):
@@ -287,6 +301,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             self.btnConfirmarCRUD.setVisible(True)
 
         elif indice_de_pagina == 2:  # Visual (Gráficos)
+            self.inicializar_vista_visual()
             self.btnConfirmarCRUD.setVisible(False)
 
         elif indice_de_pagina == 3:  # Ingeniería
@@ -660,19 +675,15 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
             print("Error: Los datos de reparación no tienen la estructura esperada (ej: [(label, value)]).")
             return
             
-        # 3. Limpiar y crear el widget de la gráfica
+        # 3. Limpiar el layout antes de agregar la nueva gráfica
         self.limpiar_layout(contenedor.layout())
-        contenedor.layout().addWidget(chart_canvas)
-        
-        
         # Creamos el canvas de la gráfica
         chart_canvas = self.create_simple_chart(
             f"Historial de Reparación de {vin}",
             datos,
             labels
         )
-        
-        # 4. Añadir el nuevo gráfico al contenedor limpio
+        # Añadir el nuevo gráfico al contenedor limpio
         contenedor.layout().addWidget(chart_canvas)
         # --- TEMPORALMENTE en mostrar_grafica_reparacion ---
         # datos_reparacion = self.db.obtener_datos_reparacion(vin) <-- COMENTA ESTO
