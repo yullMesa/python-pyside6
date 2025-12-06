@@ -1,0 +1,5 @@
+"id_empleado","nombre","email","telefono","cargo","genero","anio_ingreso"
+1,"samuel","samuelLjackson@gmail.com","3008527913","logistica","masculino","2025-02-06"
+2,"miguel","miguelo@gmail.com","3215877913","ingeniero","masculino","2025-12-01"
+4,"manuel","manuehernandez@gmail.com","3597891597","marketing","masculino","2009-12-30"
+5,"ximena","ximenasuluaga@gmail.com","3212547832","ingeniera","femenino","2003-12-03"
