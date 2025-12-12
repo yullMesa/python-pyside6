@@ -1238,7 +1238,7 @@ class MainDashboard(QMainWindow, Ui_MainWindow):
         
         # Configuración de los ejes y título
         ax.set_title(title, color='white')
-        ax.set_xlabel("Estado de Reparación", color='white')
+        #ax.set_xlabel("Estado de Reparación", color='white')
         ax.set_ylabel("Tiempo (Horas)", color='white')
         
         # Estilos para coincidir con tu tema oscuro

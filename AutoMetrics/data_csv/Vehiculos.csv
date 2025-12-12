@@ -1,5 +1,5 @@
 "vin_serial_no","marca","modelo","anio","engine_type","transmision","kilometraje","estado","ultimo_mantenimiento"
-"01","bugatti","chiron",2022,"combustion turbo aspirado","automatica",0,"excelente","2025-12-12"
+"01","bugatti","chiron",2022,"combustion turbo aspirado","automatica",0,"Mantener estado","2025-12-12"
 "1001","Mazda","3 Sedan",2020,"Gasolina","Automatica",45000,"Reparar","2025-10-15"
 "11011","Ford","Explorer",2014,"Gasolina","Automatica",210000,"En Mantenimiento","2025-11-28"
 "12012","Honda","CR-V",2020,"Gasolina","CVT",48000,"Mantener estado","2025-11-15"
